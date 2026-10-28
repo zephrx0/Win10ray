@@ -1,0 +1,3 @@
+﻿Country flags from Flagpedia / FlagCDN, based on Wikimedia Commons national flag designs.
+Source and API: https://flagpedia.net/download/api
+Downloaded as static PNG assets (w160) for offline use. No runtime CDN requests.

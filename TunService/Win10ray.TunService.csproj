@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>embedded</DebugType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>12</LangVersion>
+    <AssemblyName>Win10ray.TunService</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Services/TunConfigBuilder.cs" Link="TunConfigBuilder.cs" />
+    <Compile Include="../Services/TunProtocol.cs" Link="TunProtocol.cs" />
+    <Compile Include="../Services/TunComponentIntegrity.cs" Link="TunComponentIntegrity.cs" />
+    <Compile Include="../Services/DnsEndpoint.cs" Link="DnsEndpoint.cs" />
+  </ItemGroup>
+</Project>

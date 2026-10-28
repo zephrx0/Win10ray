@@ -1,0 +1,7 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <DrawingImage x:Key="BrandMark"><DrawingImage.Drawing><DrawingGroup>
+    <GeometryDrawing Brush="#0084E2" Geometry="M0,42 Q0,28 16,24 L88,8 88,82 0,88Z M0,97 L88,92 88,174 16,160 Q0,157 0,142Z"/>
+    <GeometryDrawing Geometry="M97,6 L143,-5 Q160,-9 160,7 L160,49 97,82Z M97,94 L160,126 160,176 Q160,192 144,187 L97,176Z"><GeometryDrawing.Brush><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#15ABF2" Offset="0"/><GradientStop Color="#28C3F7" Offset="1"/></LinearGradientBrush></GeometryDrawing.Brush></GeometryDrawing>
+    <GeometryDrawing Brush="#72E4FA" Geometry="M104,86 L250,10 250,50Z M106,90 L250,67 250,105Z M104,95 L250,121 250,161Z"/>
+  </DrawingGroup></DrawingImage.Drawing></DrawingImage>
+</ResourceDictionary>

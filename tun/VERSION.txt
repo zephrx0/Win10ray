@@ -1,0 +1,11 @@
+sing-box v1.14.4 Windows amd64
+https://github.com/SagerNet/sing-box/releases/tag/v1.14.4
+Archive SHA256: 99185d75d314a07dbba4a130c8ad986cbeb629a07927975636b341ca61f991df
+Verified against the SHA256 digest in the official GitHub release API.
+
+Wintun 0.14.1, from the official Xray-core v26.10.21 Windows archive.
+SHA256: e5da8447dc2c320edc0fc52fa01885c103de8c118481f683643cacc3220dafce
+https://www.wintun.net/
+
+Corresponding sing-box source: https://github.com/SagerNet/sing-box/tree/v1.14.4
+sing-box is a separate GPL-3.0-or-later executable. See LICENSE and COPYING.

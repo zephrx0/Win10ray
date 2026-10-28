@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12</LangVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\Win10ray.ico</ApplicationIcon>
+    <AssemblyName>Win10ray</AssemblyName>
+    <Product>Win10ray</Product>
+    <Title>Win10ray</Title>
+    <Version>1.2.1</Version>
+    <RootNamespace>XrayMetro</RootNamespace>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Flags\*.png" />
+    <None Update="Assets\Flags\SOURCE.txt" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <Compile Remove="tests\**; .tools\**; TunService\**" />
+    <None Remove="tests\**; .tools\**; TunService\**" />
+    <Page Remove="TunService\**" />
+    <Content Include="xray\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" Exclude="xray\README.md" />
+    <Content Include="tun\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <Content Include=".tools\helper\$(Configuration)\Win10ray.TunService.exe" Link="service\Win10ray.TunService.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Update="README.md" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+  <Target Name="BuildTunHelper" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+    <MSBuild Projects="TunService\Win10ray.TunService.csproj" Targets="Restore;Publish" BuildInParallel="false" Properties="Configuration=$(Configuration);PublishDir=$(MSBuildThisFileDirectory).tools\helper\$(Configuration)\;OutputPath=bin\$(Configuration)\" RemoveProperties="PublishProfile;IntermediateOutputPath;BaseIntermediateOutputPath;PublishSingleFile;IncludeNativeLibrariesForSelfExtract;DebugType;TargetFramework;UseWPF;UseWindowsForms" />
+  </Target>
+</Project>
