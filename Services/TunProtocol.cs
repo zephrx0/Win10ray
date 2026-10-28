@@ -15,7 +15,7 @@ public static class TunProtocol
     public const string ServiceName = "Win10ray.Tun";
     public const string PipeName = "Win10ray.Tun.v1";
     public const int MaximumFrame = 32768;
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 5;
     // Wintun itself can wait 15 seconds for PnP. Outer deadlines include cleanup and IPC.
     public const int AdapterStartSeconds = 35;
     public const int ServiceRequestSeconds = 45;

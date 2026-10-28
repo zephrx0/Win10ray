@@ -12,6 +12,45 @@ internal static class ProtectedStorage
     private static readonly SecurityIdentifier Administrators = new(WellKnownSidType.BuiltinAdministratorsSid, null);
     private static readonly SecurityIdentifier SystemAccount = new(WellKnownSidType.LocalSystemSid, null);
     private static readonly SecurityIdentifier Users = new(WellKnownSidType.BuiltinUsersSid, null);
+    private static readonly SecurityIdentifier TrustedInstaller = new("S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464");
+
+    public static void CreateContainer(string path, bool allowRead)
+    {
+        // Inno Setup creates the application parent with normal inherited Program Files ACLs.
+        // DirectoryInfo.Create(security) leaves an existing directory's ACL unchanged.
+        // Validate this shared parent without rewriting permissions of the installed client.
+        if (!Directory.Exists(path)) CreateDirectory(path, allowRead);
+        using SafeFileHandle guard = OpenDirectory(path);
+        ValidateContainerSecurity(new DirectoryInfo(path).GetAccessControl());
+    }
+
+    internal static void ValidateContainerSecurity(DirectorySecurity actual)
+    {
+        IdentityReference owner = actual.GetOwner(typeof(SecurityIdentifier)) ?? throw new UnauthorizedAccessException();
+        if (!Trusted(owner)) throw new UnauthorizedAccessException("Service container has an untrusted owner.");
+        const FileSystemRights genericReadExecute = unchecked((FileSystemRights)0xa0000000);
+        FileSystemRights readOnly = FileSystemRights.ReadAndExecute | FileSystemRights.Synchronize | genericReadExecute;
+        foreach (FileSystemAccessRule rule in actual.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+        {
+            if (rule.AccessControlType != AccessControlType.Allow || (rule.PropagationFlags & PropagationFlags.InheritOnly) != 0 || Trusted(rule.IdentityReference)) continue;
+            if ((rule.FileSystemRights & ~readOnly) != 0)
+                throw new UnauthorizedAccessException("Service container is writable by a non-administrator.");
+        }
+    }
+
+    private static bool Trusted(IdentityReference sid) => sid.Equals(Administrators) || sid.Equals(SystemAccount) || sid.Equals(TrustedInstaller);
+
+    private static SafeFileHandle OpenDirectory(string path)
+    {
+        SafeFileHandle guard = CreateFile(path, 0x20080, FileShare.Read | FileShare.Write, IntPtr.Zero, 3, 0x02200000, IntPtr.Zero);
+        try
+        {
+            if (guard.IsInvalid || !GetFileInformationByHandleEx(guard, 9, out AttributeInfo attributes, 8)) throw new Win32Exception(Marshal.GetLastWin32Error());
+            if ((attributes.Attributes & 0x400) != 0) throw new InvalidDataException("Reparse points are not allowed in service storage.");
+            return guard;
+        }
+        catch { guard.Dispose(); throw; }
+    }
 
     public static void CreateDirectory(string path, bool allowRead)
     {
@@ -22,9 +61,7 @@ internal static class ProtectedStorage
         if (allowRead) permissions.AddAccessRule(new FileSystemAccessRule(Users, FileSystemRights.ReadAndExecute, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
         var directory = new DirectoryInfo(path);
         directory.Create(permissions); // Apply ownership and DACL atomically on creation.
-        using SafeFileHandle guard = CreateFile(path, 0x20080, FileShare.Read | FileShare.Write, IntPtr.Zero, 3, 0x02200000, IntPtr.Zero);
-        if (guard.IsInvalid || !GetFileInformationByHandleEx(guard, 9, out AttributeInfo attributes, 8)) throw new Win32Exception(Marshal.GetLastWin32Error());
-        if ((attributes.Attributes & 0x400) != 0) throw new InvalidDataException("Reparse points are not allowed in service storage.");
+        using SafeFileHandle guard = OpenDirectory(path);
         DirectorySecurity actual = directory.GetAccessControl();
         IdentityReference owner = actual.GetOwner(typeof(SecurityIdentifier)) ?? throw new UnauthorizedAccessException();
         if ((!owner.Equals(Administrators) && !owner.Equals(SystemAccount)) || !actual.AreAccessRulesProtected) throw new UnauthorizedAccessException();

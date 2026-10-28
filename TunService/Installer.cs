@@ -8,33 +8,53 @@ namespace Win10ray.TunService;
 
 internal static class Installer
 {
-    public static string InstallDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Win10ray", "TunService");
+    public static string InstallDirectory => TunServicePaths.InstallDirectory;
     public static string DataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Win10ray", "TunService");
     public static async Task InstallAsync(SecurityIdentifier user)
     {
-        if (!user.IsAccountSid()) throw new InvalidDataException();
-        string source = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "tun"));
-        await TunComponentIntegrity.VerifyAsync(source);
-        bool existing = await ScAsync("query", TunProtocol.ServiceName) == 0;
-        if (existing) await StopAsync();
-        SecureDirectory(Path.GetDirectoryName(InstallDirectory)!, true);
-        SecureDirectory(InstallDirectory, true);
-        File.Delete(Path.Combine(InstallDirectory, "installed.v1"));
-        SecureDirectory(Path.GetDirectoryName(DataDirectory)!, false);
-        SecureDirectory(DataDirectory, false);
-        foreach (string file in TunComponentIntegrity.Hashes.Keys.Append("LICENSE").Append("LICENSE-Wintun").Append("COPYING"))
-            await ProtectedStorage.CopyAsync(Path.Combine(source, file), Path.Combine(InstallDirectory, file));
-        await ProtectedStorage.CopyAsync(Environment.ProcessPath!, Path.Combine(InstallDirectory, "Win10ray.TunService.exe"));
-        await ProtectedStorage.WriteTextAsync(Path.Combine(InstallDirectory, "client.sid"), user.Value);
-        string executable = $"\"{Path.Combine(InstallDirectory, "Win10ray.TunService.exe")}\" --service";
-        if (await ScAsync(existing ? "config" : "create", TunProtocol.ServiceName, "binPath=", executable, "start=", "auto", "depend=", "Tcpip/BFE", "DisplayName=", "Win10ray TUN") != 0)
-            throw new InvalidOperationException();
-        string descriptor = $"D:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCRPLO;;;{user.Value})";
-        if (await ScAsync("sdset", TunProtocol.ServiceName, descriptor) != 0) throw new InvalidOperationException();
-        _ = await ScAsync("description", TunProtocol.ServiceName, "Win10ray TUN transport");
-        _ = await ScAsync("failure", TunProtocol.ServiceName, "reset=", "86400", "actions=", "restart/5000/restart/10000/restart/30000");
-        if (await ScAsync("start", TunProtocol.ServiceName) != 0) throw new InvalidOperationException();
-        await ProtectedStorage.WriteTextAsync(Path.Combine(InstallDirectory, "installed.v1"), "1");
+        TunInstallStage stage = TunInstallStage.UserIdentity;
+        try
+        {
+            if (!user.IsAccountSid()) throw new InvalidDataException();
+            stage = TunInstallStage.Components;
+            string source = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "tun"));
+            await TunComponentIntegrity.VerifyAsync(source);
+            bool existing = await ScAsync("query", TunProtocol.ServiceName) == 0;
+            stage = TunInstallStage.StopService;
+            if (existing) await StopAsync();
+            stage = TunInstallStage.AppContainer;
+            ProtectedStorage.CreateContainer(Path.GetDirectoryName(InstallDirectory)!, true);
+            stage = TunInstallStage.AppDirectory;
+            SecureDirectory(InstallDirectory, true);
+            File.Delete(Path.Combine(InstallDirectory, "installed.v1"));
+            stage = TunInstallStage.DataContainer;
+            ProtectedStorage.CreateContainer(Path.GetDirectoryName(DataDirectory)!, false);
+            stage = TunInstallStage.DataDirectory;
+            SecureDirectory(DataDirectory, false);
+            stage = TunInstallStage.CopyComponents;
+            foreach (string file in TunComponentIntegrity.Hashes.Keys.Append("LICENSE").Append("LICENSE-Wintun").Append("COPYING"))
+                await ProtectedStorage.CopyAsync(Path.Combine(source, file), Path.Combine(InstallDirectory, file));
+            stage = TunInstallStage.CopyHelper;
+            await ProtectedStorage.CopyAsync(Environment.ProcessPath!, Path.Combine(InstallDirectory, "Win10ray.TunService.exe"));
+            stage = TunInstallStage.ClientIdentity;
+            await ProtectedStorage.WriteTextAsync(Path.Combine(InstallDirectory, "client.sid"), user.Value);
+            string executable = $"\"{Path.Combine(InstallDirectory, "Win10ray.TunService.exe")}\" --service";
+            stage = TunInstallStage.RegisterService;
+            int result = await ScAsync(existing ? "config" : "create", TunProtocol.ServiceName, "binPath=", executable, "start=", "auto", "depend=", "Tcpip/BFE", "DisplayName=", "Win10ray TUN");
+            if (result != 0) throw new System.ComponentModel.Win32Exception(result);
+            stage = TunInstallStage.ServicePermissions;
+            string descriptor = $"D:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCRPLO;;;{user.Value})";
+            result = await ScAsync("sdset", TunProtocol.ServiceName, descriptor);
+            if (result != 0) throw new System.ComponentModel.Win32Exception(result);
+            _ = await ScAsync("description", TunProtocol.ServiceName, "Win10ray TUN transport");
+            _ = await ScAsync("failure", TunProtocol.ServiceName, "reset=", "86400", "actions=", "restart/5000/restart/10000/restart/30000");
+            stage = TunInstallStage.StartService;
+            result = await ScAsync("start", TunProtocol.ServiceName);
+            if (result is not (0 or 1056)) throw new System.ComponentModel.Win32Exception(result);
+            stage = TunInstallStage.Completion;
+            await ProtectedStorage.WriteTextAsync(Path.Combine(InstallDirectory, "installed.v1"), "1");
+            }
+        catch (Exception exception) { throw new ServiceInstallException(stage, exception); }
     }
 
     public static async Task UninstallAsync()
@@ -62,7 +82,7 @@ internal static class Installer
                 {
                     try
                     {
-                        if (process.Id != Environment.ProcessId && process.MainModule?.FileName == Path.Combine(InstallDirectory, "Win10ray.TunService.exe")) running = true;
+                        if (process.Id != Environment.ProcessId && process.MainModule?.FileName is string image && TunServicePaths.IsAllowedImage(image, probeOnly: true)) running = true;
                     }
                     catch (InvalidOperationException) { }
                 }

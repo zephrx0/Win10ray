@@ -16,6 +16,8 @@
   <ItemGroup>
     <Compile Include="../Services/TunConfigBuilder.cs" Link="TunConfigBuilder.cs" />
     <Compile Include="../Services/TunProtocol.cs" Link="TunProtocol.cs" />
+    <Compile Include="../Services/TunInstallDiagnostics.cs" Link="TunInstallDiagnostics.cs" />
+    <Compile Include="../Services/TunServicePaths.cs" Link="TunServicePaths.cs" />
     <Compile Include="../Services/TunComponentIntegrity.cs" Link="TunComponentIntegrity.cs" />
     <Compile Include="../Services/DnsEndpoint.cs" Link="DnsEndpoint.cs" />
   </ItemGroup>

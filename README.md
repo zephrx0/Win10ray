@@ -25,7 +25,7 @@
 
 Требуется **Windows 10/11 x64**. Для готовой сборки установка .NET не нужна.
 
-1. Скачайте [Win10ray-Setup-1.3.1.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.1/Win10ray-Setup-1.3.1.exe).
+1. Скачайте [Win10ray-Setup-1.3.2.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.2/Win10ray-Setup-1.3.2.exe).
 2. Запустите установщик и выберите папку установки.
 3. Запустите `Win10ray.exe`, импортируйте ссылку или подписку и выберите сервер.
 4. Выберите режим и нажмите «Подключить».
@@ -60,7 +60,7 @@ DNS по умолчанию: `1.1.1.1`. DNS over HTTPS и исключения �
 
 ### Обновления
 
-Начиная с **1.3.1**, клиент обновляется через EXE-установщики GitHub Releases. Пользователям 1.3.0 нужно один раз установить 1.3.1 вручную: старый updater поддерживал только ZIP.
+Начиная с **1.3.1**, клиент обновляется через EXE-установщики GitHub Releases. Пользователям 1.3.0 нужно один раз установить 1.3.1 или новее вручную: старый updater поддерживал только ZIP.
 
 В разделе «Общие» доступны проверка при запуске, «Проверить обновления» и «Обновить клиент». Клиент ищет стабильный релиз с тегом `vX.Y.Z` и файлом `Win10ray-Setup-X.Y.Z.exe`. Если в релизе также есть ZIP, установщик имеет приоритет.
 
@@ -69,6 +69,8 @@ DNS по умолчанию: `1.1.1.1`. DNS over HTTPS и исключения �
 Для установки в Program Files Windows может запросить UAC. Отмена или ошибка установщика отображаются отдельно. Автоматическая перезагрузка Windows запрещена; если установщик сообщает, что она нужна, updater показывает сообщение и ждёт действий пользователя. Журнал установки сохраняется в `%LocalAppData%\Win10ray\Updates\<идентификатор>\setup.log`.
 
 `updater.exe` можно запустить вручную рядом с `Win10ray.exe`. В этом случае для установки завершите клиент через «Выход» в меню трея. Подписки, HWID и токены авторизации в запросах обновлений не передаются.
+
+В 1.3.2 исправлена установка TUN после EXE-установки клиента: служба размещается отдельно в `%ProgramFiles%\Win10ray.TunService`. Обычные наследуемые права папки приложения больше не препятствуют установке. При переносе старой службы Windows один раз запросит UAC. Исполняемые файлы службы остаются доступны для записи только SYSTEM и администраторам; в ошибках сохраняются этап установки и код Windows.
 
 ### Данные и приватность
 
@@ -98,7 +100,7 @@ dotnet run --project Win10ray.csproj
 dotnet publish -c Release -p:PublishProfile=Windows
 ```
 
-Результат: `artifacts/Win10ray-1.3.1`. Команда `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` собирает клиент и создаёт `artifacts/Win10ray-Setup-1.3.1.exe` с контрольной суммой. Для неё дополнительно нужен [Inno Setup 6](https://jrsoftware.org/isinfo.php); исходник установщика: `installer/Win10ray.iss`.
+Результат: `artifacts/Win10ray-1.3.2`. Команда `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` собирает клиент и создаёт `artifacts/Win10ray-Setup-1.3.2.exe` с контрольной суммой. Для неё дополнительно нужен [Inno Setup 6](https://jrsoftware.org/isinfo.php); исходник установщика: `installer/Win10ray.iss`.
 
 ### Проверки
 
@@ -147,7 +149,7 @@ A minimal Xray client for Windows 10 and 11. Native C# and WPF interface, light 
 
 Requires **Windows 10/11 x64**. Published builds do not require a separate .NET installation.
 
-1. Download [Win10ray-Setup-1.3.1.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.1/Win10ray-Setup-1.3.1.exe).
+1. Download [Win10ray-Setup-1.3.2.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.2/Win10ray-Setup-1.3.2.exe).
 2. Run the installer and choose an installation folder.
 3. Run `Win10ray.exe`, import a link or subscription, and select a server.
 4. Choose a connection mode and click **Connect**.
@@ -166,7 +168,7 @@ Closing the window hides it in the system tray by default. Use **Exit** in the c
 
 ### Updates
 
-Starting with **1.3.1**, the client updates through EXE installers from GitHub Releases. Users of 1.3.0 need to install 1.3.1 manually once because the old updater only supported ZIP packages.
+Starting with **1.3.1**, the client updates through EXE installers from GitHub Releases. Users of 1.3.0 need to install 1.3.1 or later manually once because the old updater only supported ZIP packages.
 
 Under **General**, enable startup checks or use **Check for updates** and **Update client**. The client looks for a stable release tagged `vX.Y.Z` with `Win10ray-Setup-X.Y.Z.exe`. When both EXE and ZIP packages exist, the installer is preferred.
 
@@ -175,6 +177,8 @@ Before execution, the updater verifies the SHA-256 provided by the [GitHub Relea
 Updating an installation in Program Files may trigger UAC. Cancellation and installer errors are reported separately. Automatic Windows restarts are disabled; if a restart is required, the updater displays a message and waits for the user. Installation logs are saved to `%LocalAppData%\Win10ray\Updates\<session>\setup.log`.
 
 You can also run `updater.exe` manually next to `Win10ray.exe`. For manual installation, quit the client using **Exit** in the tray menu. Update requests do not include subscriptions, HWID or authentication tokens.
+
+Version 1.3.2 fixes TUN installation after installing the client from EXE. The service now lives separately in `%ProgramFiles%\Win10ray.TunService`, so inherited application-folder permissions do not block installation. Migrating an existing service requires one UAC prompt. Only SYSTEM and administrators can modify service executables; installation failures retain their stage and Windows error code.
 
 ### Data and privacy
 
@@ -204,7 +208,7 @@ Publish a self-contained `win-x64` build:
 dotnet publish -c Release -p:PublishProfile=Windows
 ```
 
-Output: `artifacts/Win10ray-1.3.1`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` to build `artifacts/Win10ray-Setup-1.3.1.exe` with a checksum. This also requires [Inno Setup 6](https://jrsoftware.org/isinfo.php); the installer source is `installer/Win10ray.iss`.
+Output: `artifacts/Win10ray-1.3.2`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` to build `artifacts/Win10ray-Setup-1.3.2.exe` with a checksum. This also requires [Inno Setup 6](https://jrsoftware.org/isinfo.php); the installer source is `installer/Win10ray.iss`.
 
 ### Tests
 

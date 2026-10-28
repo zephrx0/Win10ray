@@ -23,12 +23,25 @@ internal static class TunTests
             TunRequest restored = await TunProtocol.ReadAsync<TunRequest>(memory, CancellationToken.None);
             Check(restored.Command == "heartbeat" && restored.Token == "synthetic-session", "IPC frame round-trip");
         }
-        Check(JsonSerializer.Deserialize<TunResponse>("{\"Ok\":true}")!.ProtocolVersion == 0 && TunProtocol.CurrentVersion == 4, "legacy service detected for one-time upgrade");
+        Check(JsonSerializer.Deserialize<TunResponse>("{\"Ok\":true}")!.ProtocolVersion == 0 && TunProtocol.CurrentVersion == 5, "legacy service detected for one-time upgrade");
+        Check(Path.GetDirectoryName(TunServicePaths.InstallDirectory) == Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "privileged service is independent of the application install folder");
+        string legacyImage = Path.Combine(TunServicePaths.LegacyDirectory, "Win10ray.TunService.exe");
+        Check(TunServicePaths.IsAllowedImage(legacyImage, true) && !TunServicePaths.IsAllowedImage(legacyImage, false), "legacy helper can only receive a public version probe, never session tokens");
+        Check(!TunServicePaths.IsAllowedImage(Path.Combine(Path.GetTempPath(), "Win10ray.TunService.exe"), true), "user-writable helpers cannot impersonate the service");
         Check(TunProtocol.AdapterStartSeconds > 15 && TunProtocol.ServiceRequestSeconds > TunProtocol.AdapterStartSeconds && TunProtocol.ClientRequestSeconds > TunProtocol.ServiceRequestSeconds, "IPC cannot terminate valid Wintun startup before its PnP deadline");
         using (JsonDocument fresh = JsonDocument.Parse(TunConfigBuilder.Build(interfaceName: "Win10ray-aabbccddeeff")))
             Check(fresh.RootElement.GetProperty("inbounds")[0].GetProperty("interface_name").GetString() == "Win10ray-aabbccddeeff", "TUN session accepts a fresh PnP identity");
         Check(TunServiceClient.Failure("adapter_timeout").Message.Contains("[adapter_timeout]") && TunServiceClient.Failure("ipc_closed").Code == "ipc_closed", "TUN failure reports a specific safe code");
         Check(!TunServiceClient.Failure("https://secret.example/token").Message.Contains("secret.example"), "unexpected service error codes do not disclose arbitrary strings");
+        foreach (TunInstallStage stage in Enum.GetValues<TunInstallStage>())
+        {
+            int exit = TunInstallDiagnostics.Encode(stage, 5);
+            Check(TunInstallDiagnostics.TryDecode(exit, out TunInstallStage decoded, out int native) && decoded == stage && native == 5, "installer stage and Windows error survive UAC process exit");
+            string code = TunInstallDiagnostics.ErrorCode(exit);
+            Check(TunServiceClient.Failure(code).Code == code && code.StartsWith("install_", StringComparison.Ordinal), "installation errors preserve a safe actionable code");
+        }
+        Check(!TunInstallDiagnostics.TryDecode(1, out _, out _), "legacy generic installer exits are not mistaken for structured errors");
+        Check(TunInstallDiagnostics.ErrorCode(unchecked((int)0xc0000428)) == "install_exit_c0000428", "native image-loader failure codes are retained");
         using (var memory = new MemoryStream())
         {
             await TunProtocol.WriteAsync(memory, new TunRequest("start", UseDnsOverHttps: true, DnsOverHttpsUrl: DnsEndpoint.Default), CancellationToken.None);
@@ -99,7 +112,7 @@ internal static class TunTests
         finally { Directory.Delete(directory, true); }
 
         // A user process impersonating the service must be rejected before receiving a token.
-        if (!File.Exists(Path.Combine(TunServiceClient.InstallDirectory, "Win10ray.TunService.exe")))
+        if (!File.Exists(Path.Combine(TunServiceClient.InstallDirectory, "Win10ray.TunService.exe")) && !File.Exists(legacyImage))
         {
             using var fake = new NamedPipeServerStream(TunProtocol.PipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
             Task connected = fake.WaitForConnectionAsync();

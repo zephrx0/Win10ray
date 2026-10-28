@@ -37,7 +37,7 @@ public sealed class TunServiceClient : ITunSessionService
     private Task? _heartbeatTask;
     public event Action<string>? LogReceived;
     public event Action? ConnectionLost;
-    public static string InstallDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Win10ray", "TunService");
+    public static string InstallDirectory => TunServicePaths.InstallDirectory;
 
     public async Task PrepareAsync(CancellationToken cancellationToken)
     {
@@ -90,6 +90,11 @@ public sealed class TunServiceClient : ITunSessionService
     {
         string key = code switch
         {
+            _ when code is "service_win32_577" or "service_win32_225" or "service_win32_226" or "service_win32_1260" or "install_exit_c0000428" => "TunWindowsBlocked",
+            _ when code.StartsWith("install_", StringComparison.Ordinal) && (code.EndsWith("_577", StringComparison.Ordinal) || code.EndsWith("_225", StringComparison.Ordinal) || code.EndsWith("_226", StringComparison.Ordinal) || code.EndsWith("_1260", StringComparison.Ordinal)) => "TunWindowsBlocked",
+            "install_start_service_1068" or "service_win32_1068" => "TunDependencyFailed",
+            _ when code.StartsWith("install_app_", StringComparison.Ordinal) || code.StartsWith("install_data_", StringComparison.Ordinal) => "TunInstallStorage",
+            _ when code.StartsWith("install_", StringComparison.Ordinal) => "TunInstallFailed",
             "busy" => "TunBusy", "adapter_timeout" => "TunAdapterTimeout", "backend_exit" => "TunBackendExit",
             "ipc_closed" => "TunPipeClosed", "service_access_denied" => "TunAccessDenied",
             "xray_unavailable" => "TunXrayUnavailable", "service_timeout" => "TunUnavailable",
@@ -132,7 +137,7 @@ public sealed class TunServiceClient : ITunSessionService
             // Elevation is used only by this installer. All later TUN requests use the protected pipe.
             using Process installer = Process.Start(info) ?? throw new InvalidOperationException(LocalizationService.Get("TunInstallFailed"));
             await installer.WaitForExitAsync().ConfigureAwait(false);
-            if (installer.ExitCode != 0) throw new InvalidOperationException(LocalizationService.Get("TunInstallFailed"));
+            if (installer.ExitCode != 0) throw Failure(TunInstallDiagnostics.ErrorCode(installer.ExitCode));
         }
         catch (Win32Exception exception) when (exception.NativeErrorCode == 1223)
         {
@@ -226,17 +231,17 @@ public sealed class TunServiceClient : ITunSessionService
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken); deadline.CancelAfter(timeout);
         using var pipe = new NamedPipeClientStream(".", TunProtocol.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous, TokenImpersonationLevel.Identification);
         await pipe.ConnectAsync(deadline.Token).ConfigureAwait(false);
-        ValidateServer(pipe);
+        ValidateServer(pipe, request.Command == "ping");
         await TunProtocol.WriteAsync(pipe, request, deadline.Token).ConfigureAwait(false);
         return await TunProtocol.ReadAsync<TunResponse>(pipe, deadline.Token).ConfigureAwait(false);
     }
-    private static void ValidateServer(NamedPipeClientStream pipe)
+    private static void ValidateServer(NamedPipeClientStream pipe, bool probeOnly)
     {
         if (!GetNamedPipeServerProcessId(pipe.SafePipeHandle, out uint pid)) throw new UnauthorizedAccessException();
         using SafeProcessHandle process = OpenProcess(0x1000, false, pid);
         var path = new StringBuilder(32768); int size = path.Capacity;
         if (process.IsInvalid || !QueryFullProcessImageName(process, 0, path, ref size) ||
-            !path.ToString().Equals(Path.Combine(InstallDirectory, "Win10ray.TunService.exe"), StringComparison.OrdinalIgnoreCase))
+            !TunServicePaths.IsAllowedImage(path.ToString(), probeOnly))
             throw new UnauthorizedAccessException();
     }
     [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GetNamedPipeServerProcessId(SafePipeHandle pipe, out uint pid);
