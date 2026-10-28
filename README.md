@@ -25,8 +25,8 @@
 
 Требуется **Windows 10/11 x64**. Для готовой сборки установка .NET не нужна.
 
-1. Скачайте ZIP-архив клиента из [Releases](https://github.com/zephrx0/Win10ray/releases).
-2. Распакуйте архив целиком в отдельную папку.
+1. Скачайте [Win10ray-Setup-1.3.0.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.0/Win10ray-Setup-1.3.0.exe).
+2. Запустите установщик и выберите папку установки.
 3. Запустите `Win10ray.exe`, импортируйте ссылку или подписку и выберите сервер.
 4. Выберите режим и нажмите «Подключить».
 
@@ -60,13 +60,15 @@ DNS по умолчанию: `1.1.1.1`. DNS over HTTPS и исключения �
 
 ### Обновления
 
+**Релиз 1.3.0 распространяется установщиком EXE. Текущий updater поддерживает только ZIP; для установки опубликованного EXE используйте ссылку выше. Автоматическая установка обновлений через EXE пока не поддерживается.**
+
 Клиент проверяет стабильные релизы этого репозитория при запуске. Параметр можно выключить в разделе «Общие». Там же доступны кнопки «Проверить обновления» и «Обновить клиент».
 
 Перед установкой клиент скачивает ZIP и проверяет SHA-256, полученный от GitHub. Затем корректно завершает подключение. Отдельный `updater.exe` заменяет файлы, восстанавливает предыдущую версию при ошибке и запускает клиент снова. Настройки в AppData сохраняются. Updater обновляется вместе с клиентом.
 
 `updater.exe` также можно запустить вручную рядом с `Win10ray.exe`. При ручной установке завершите клиент через «Выход» в меню трея. Для записи в папку приложения нужны права текущего пользователя.
 
-Для следующей версии создайте стабильный релиз с тегом `vX.Y.Z` и прикрепите архив `Win10ray-X.Y.Z-win-x64.zip`. Внутри архива должны лежать файлы клиента без дополнительной внешней папки. SHA-256 берётся из поля `digest` [GitHub Releases API](https://docs.github.com/en/rest/releases/assets). Подписки, HWID и токены авторизации в запросах обновлений не передаются.
+Текущая реализация updater ищет в стабильном релизе с тегом `vX.Y.Z` архив `Win10ray-X.Y.Z-win-x64.zip`. Она не запускает установщики EXE. Внутри поддерживаемого ZIP должны лежать файлы клиента без дополнительной внешней папки. SHA-256 берётся из поля `digest` [GitHub Releases API](https://docs.github.com/en/rest/releases/assets). Подписки, HWID и токены авторизации в запросах обновлений не передаются.
 
 ### Данные и приватность
 
@@ -143,8 +145,8 @@ A minimal Xray client for Windows 10 and 11. Native C# and WPF interface, light 
 
 Requires **Windows 10/11 x64**. Published builds do not require a separate .NET installation.
 
-1. Download the client ZIP archive from [Releases](https://github.com/zephrx0/Win10ray/releases).
-2. Extract the entire archive into a separate folder.
+1. Download [Win10ray-Setup-1.3.0.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.0/Win10ray-Setup-1.3.0.exe).
+2. Run the installer and choose an installation folder.
 3. Run `Win10ray.exe`, import a link or subscription, and select a server.
 4. Choose a connection mode and click **Connect**.
 
@@ -162,13 +164,15 @@ Closing the window hides it in the system tray by default. Use **Exit** in the c
 
 ### Updates
 
+**Release 1.3.0 is distributed as an EXE installer. The current updater supports ZIP packages only; use the link above to install the published EXE. Automatic installation of EXE updates is not supported yet.**
+
 The client checks this repository's stable releases on startup. You can disable this under **General**, or use **Check for updates** and **Update client** manually.
 
 Before installation, the client downloads the ZIP and verifies the SHA-256 supplied by GitHub. It then shuts down the connection cleanly. A separate `updater.exe` replaces the files, restores the previous version if installation fails, and restarts the client. Settings in AppData are preserved. The updater itself is updated with the client.
 
 You can also run `updater.exe` manually next to `Win10ray.exe`. For manual installation, quit the client using **Exit** in the tray menu. Your Windows account needs write access to the application folder.
 
-To publish the next version, create a stable release tagged `vX.Y.Z` and attach `Win10ray-X.Y.Z-win-x64.zip`. The ZIP must contain application files at its root, without an enclosing folder. SHA-256 comes from the `digest` field in the [GitHub Releases API](https://docs.github.com/en/rest/releases/assets). Update requests do not include subscriptions, HWID or authentication tokens.
+The current updater looks for `Win10ray-X.Y.Z-win-x64.zip` in a stable release tagged `vX.Y.Z`. It does not run EXE installers. A supported ZIP must contain application files at its root, without an enclosing folder. SHA-256 comes from the `digest` field in the [GitHub Releases API](https://docs.github.com/en/rest/releases/assets). Update requests do not include subscriptions, HWID or authentication tokens.
 
 ### Data and privacy
 
