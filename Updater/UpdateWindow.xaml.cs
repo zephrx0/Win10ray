@@ -79,6 +79,7 @@ public partial class UpdateWindow : Window
             await ApplyAsync(new(_target, archive, _release, 0, 0), directory, false);
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+        catch (InstallerException exception) { ShowInstallerError(exception); }
         catch { StatusLabel.Text = Text("Обновление не установлено. Проверьте подключение и доступ к папке клиента.", "Update was not installed. Check the connection and access to the client folder."); }
         finally { SetBusy(false); }
     }
@@ -92,13 +93,15 @@ public partial class UpdateWindow : Window
             string directory = Path.GetDirectoryName(request)!;
             if (Path.GetFileName(request) != "handoff.json" || !directory.StartsWith(Path.GetFullPath(UpdateService.CacheDirectory) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
             var handoff = JsonSerializer.Deserialize<UpdateHandoff>(await File.ReadAllTextAsync(request, _lifetime.Token)) ?? throw new InvalidDataException();
-            if (Path.GetFullPath(handoff.ArchivePath) != Path.Combine(directory, "release.zip")) throw new InvalidDataException();
+            UpdateService.Validate(handoff.Release);
+            if (Path.GetFullPath(handoff.ArchivePath) != Path.Combine(directory, handoff.Release.CacheFileName)) throw new InvalidDataException();
             using Process parent = Process.GetProcessById(handoff.ParentPid);
             if (parent.StartTime.ToUniversalTime().Ticks != handoff.ParentStartTicks || !string.Equals(parent.MainModule?.FileName, Path.Combine(Path.GetFullPath(handoff.TargetDirectory), "Win10ray.exe"), StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
             await ApplyAsync(handoff, directory, true);
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
-        catch { StatusLabel.Text = Text("Обновление не установлено. Предыдущая версия сохранена. Закройте клиент и повторите запуск updater.exe.", "Update was not installed. The previous version was kept. Exit the client and run updater.exe again."); }
+        catch (InstallerException exception) { ShowInstallerError(exception); }
+        catch { StatusLabel.Text = Text("Не удалось завершить обновление. Закройте клиент и запустите установщик вручную.", "Could not complete the update. Exit the client and run the installer manually."); }
         finally { SetBusy(false); }
     }
 
@@ -114,11 +117,16 @@ public partial class UpdateWindow : Window
             if (!acquired) { instance.Dispose(); throw new IOException("Another updater is already running."); }
             _instance = instance;
         }
-        string accessProbe = UpdatePackage.Under(handoff.TargetDirectory, ".update-access-" + Guid.NewGuid().ToString("N"));
-        using (new FileStream(accessProbe, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.DeleteOnClose)) { }
         StatusLabel.Text = Text("Проверка файлов...", "Verifying files...");
         await UpdateService.VerifyAsync(handoff.ArchivePath, handoff.Release, _lifetime.Token);
-        string extracted = await UpdatePackage.ExtractAsync(handoff.ArchivePath, Path.Combine(directory, "verified"), handoff.Release.Version, _lifetime.Token);
+        string? extracted = null;
+        if (handoff.Release.IsInstaller) await ExeInstallerService.VerifyAsync(handoff.ArchivePath, handoff.Release, _lifetime.Token);
+        else
+        {
+            string accessProbe = UpdatePackage.Under(handoff.TargetDirectory, ".update-access-" + Guid.NewGuid().ToString("N"));
+            using (new FileStream(accessProbe, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.DeleteOnClose)) { }
+            extracted = await UpdatePackage.ExtractAsync(handoff.ArchivePath, Path.Combine(directory, "verified"), handoff.Release.Version, _lifetime.Token);
+        }
         if (signalParent) await File.WriteAllTextAsync(Path.Combine(directory, "ready"), "ready", _lifetime.Token);
         StatusLabel.Text = Text("Ожидание выхода Win10ray. При ручном обновлении выберите «Выход» в меню трея.", "Waiting for Win10ray to exit. For a manual update, choose Exit in the tray menu.");
         using var wait = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
@@ -127,9 +135,12 @@ public partial class UpdateWindow : Window
         _installing = true;
         try
         {
-            StatusLabel.Text = Text("Установка обновления...", "Installing update..."); Progress.IsIndeterminate = false;
-            await UpdatePackage.InstallAsync(extracted, handoff.TargetDirectory, new Progress<double>(value => Progress.Value = value), CancellationToken.None);
+            StatusLabel.Text = Text("Установка обновления...", "Installing update..."); Progress.IsIndeterminate = handoff.Release.IsInstaller;
+            bool restart = false;
+            if (handoff.Release.IsInstaller) restart = await ExeInstallerService.InstallAsync(handoff.ArchivePath, handoff.Release, handoff.TargetDirectory, Path.Combine(directory, "setup.log"), _lifetime.Token);
+            else await UpdatePackage.InstallAsync(extracted!, handoff.TargetDirectory, new Progress<double>(value => Progress.Value = value), CancellationToken.None);
             await File.WriteAllTextAsync(Path.Combine(directory, "complete"), "complete");
+            if (restart) { StatusLabel.Text = Text("Обновление установлено. Для завершения перезагрузите Windows.", "Update installed. Restart Windows to complete the installation."); return; }
             var info = new ProcessStartInfo(Path.Combine(handoff.TargetDirectory, "Win10ray.exe")) { UseShellExecute = true, WorkingDirectory = handoff.TargetDirectory };
             using Process? child = Process.Start(info);
             if (child is null) throw new IOException();
@@ -138,5 +149,11 @@ public partial class UpdateWindow : Window
         finally { _installing = false; }
     }
     private void CloseAfterInstall() { _installing = false; Close(); }
+    private void ShowInstallerError(InstallerException exception)
+    {
+        StatusLabel.Text = exception.Code is "elevation_cancelled" or "install_cancelled"
+            ? Text("Установка отменена. Текущий клиент можно запустить снова.", "Installation cancelled. You can start the current client again.")
+            : Text("Установщик не завершил обновление. Подробности в setup.log. Код: ", "The installer could not complete the update. See setup.log. Code: ") + exception.Code;
+    }
     private void ClosingWindow(object? sender, CancelEventArgs e) { if (_installing) e.Cancel = true; }
 }

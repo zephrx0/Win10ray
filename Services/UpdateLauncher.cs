@@ -20,7 +20,8 @@ public static class UpdateLauncher
         {
             using var service = new UpdateService();
             string archive = await service.DownloadAsync(release, directory, progress, token).ConfigureAwait(false);
-            await UpdatePackage.ExtractAsync(archive, Path.Combine(directory, "preflight"), release.Version, token).ConfigureAwait(false);
+            if (release.IsInstaller) await ExeInstallerService.VerifyAsync(archive, release, token).ConfigureAwait(false);
+            else await UpdatePackage.ExtractAsync(archive, Path.Combine(directory, "preflight"), release.Version, token).ConfigureAwait(false);
             string executable = Path.Combine(directory, "updater.exe");
             await Task.Run(() => File.Copy(updater, executable), token).ConfigureAwait(false);
             using Process parent = Process.GetCurrentProcess();

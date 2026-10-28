@@ -157,6 +157,8 @@ if (xrayArgument >= 0 && xrayArgument + 1 < args.Length)
 passed += await ServicesSupportTests.RunAsync();
 passed += await FailoverTests.RunAsync();
 passed += await UpdateTests.RunAsync();
+int installerArgument = Array.IndexOf(args, "--installer-test");
+if (installerArgument >= 0 && installerArgument + 2 < args.Length) passed += await UpdateTests.RunInstallerAsync(args[installerArgument + 1], args[installerArgument + 2]);
 if (args.Contains("--ui", StringComparer.Ordinal)) passed += await UiSmokeTests.RunAsync();
 int watchdogArgument = Array.IndexOf(args, "--watchdog-exe");
 if (watchdogArgument >= 0 && watchdogArgument + 1 < args.Length) passed += await CrashCleanupTests.TestWatchdogAsync(args[watchdogArgument + 1]);

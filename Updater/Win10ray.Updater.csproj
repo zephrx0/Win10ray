@@ -13,7 +13,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LangVersion>12</LangVersion>
     <AssemblyName>updater</AssemblyName>
-    <Version>1.3.0</Version>
+    <Version>1.3.1</Version>
     <Product>Win10ray Updater</Product>
     <ApplicationIcon>../Assets/Win10ray.ico</ApplicationIcon>
     <ApplicationManifest>../app.manifest</ApplicationManifest>
@@ -21,5 +21,6 @@
   <ItemGroup>
     <Compile Include="../Services/UpdateService.cs" Link="UpdateService.cs" />
     <Compile Include="../Services/UpdatePackage.cs" Link="UpdatePackage.cs" />
+    <Compile Include="../Services/ExeInstallerService.cs" Link="ExeInstallerService.cs" />
   </ItemGroup>
 </Project>

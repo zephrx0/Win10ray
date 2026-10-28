@@ -25,7 +25,7 @@
 
 Требуется **Windows 10/11 x64**. Для готовой сборки установка .NET не нужна.
 
-1. Скачайте [Win10ray-Setup-1.3.0.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.0/Win10ray-Setup-1.3.0.exe).
+1. Скачайте [Win10ray-Setup-1.3.1.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.1/Win10ray-Setup-1.3.1.exe).
 2. Запустите установщик и выберите папку установки.
 3. Запустите `Win10ray.exe`, импортируйте ссылку или подписку и выберите сервер.
 4. Выберите режим и нажмите «Подключить».
@@ -60,15 +60,15 @@ DNS по умолчанию: `1.1.1.1`. DNS over HTTPS и исключения �
 
 ### Обновления
 
-**Релиз 1.3.0 распространяется установщиком EXE. Текущий updater поддерживает только ZIP; для установки опубликованного EXE используйте ссылку выше. Автоматическая установка обновлений через EXE пока не поддерживается.**
+Начиная с **1.3.1**, клиент обновляется через EXE-установщики GitHub Releases. Пользователям 1.3.0 нужно один раз установить 1.3.1 вручную: старый updater поддерживал только ZIP.
 
-Клиент проверяет стабильные релизы этого репозитория при запуске. Параметр можно выключить в разделе «Общие». Там же доступны кнопки «Проверить обновления» и «Обновить клиент».
+В разделе «Общие» доступны проверка при запуске, «Проверить обновления» и «Обновить клиент». Клиент ищет стабильный релиз с тегом `vX.Y.Z` и файлом `Win10ray-Setup-X.Y.Z.exe`. Если в релизе также есть ZIP, установщик имеет приоритет.
 
-Перед установкой клиент скачивает ZIP и проверяет SHA-256, полученный от GitHub. Затем корректно завершает подключение. Отдельный `updater.exe` заменяет файлы, восстанавливает предыдущую версию при ошибке и запускает клиент снова. Настройки в AppData сохраняются. Updater обновляется вместе с клиентом.
+Перед запуском проверяются SHA-256 из [GitHub Releases API](https://docs.github.com/en/rest/releases/assets), название и версия установщика. Затем клиент корректно завершает соединение, а отдельный `updater.exe` запускает Inno Setup с текущей папкой установки. После успешной установки клиент запускается снова без прав администратора. Профили и настройки в AppData сохраняются.
 
-`updater.exe` также можно запустить вручную рядом с `Win10ray.exe`. При ручной установке завершите клиент через «Выход» в меню трея. Для записи в папку приложения нужны права текущего пользователя.
+Для установки в Program Files Windows может запросить UAC. Отмена или ошибка установщика отображаются отдельно. Автоматическая перезагрузка Windows запрещена; если установщик сообщает, что она нужна, updater показывает сообщение и ждёт действий пользователя. Журнал установки сохраняется в `%LocalAppData%\Win10ray\Updates\<идентификатор>\setup.log`.
 
-Текущая реализация updater ищет в стабильном релизе с тегом `vX.Y.Z` архив `Win10ray-X.Y.Z-win-x64.zip`. Она не запускает установщики EXE. Внутри поддерживаемого ZIP должны лежать файлы клиента без дополнительной внешней папки. SHA-256 берётся из поля `digest` [GitHub Releases API](https://docs.github.com/en/rest/releases/assets). Подписки, HWID и токены авторизации в запросах обновлений не передаются.
+`updater.exe` можно запустить вручную рядом с `Win10ray.exe`. В этом случае для установки завершите клиент через «Выход» в меню трея. Подписки, HWID и токены авторизации в запросах обновлений не передаются.
 
 ### Данные и приватность
 
@@ -98,7 +98,7 @@ dotnet run --project Win10ray.csproj
 dotnet publish -c Release -p:PublishProfile=Windows
 ```
 
-Результат: `artifacts/Win10ray-1.3.0`. Команда `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` собирает клиент и создаёт архив для GitHub Releases с контрольной суммой.
+Результат: `artifacts/Win10ray-1.3.1`. Команда `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` собирает клиент и создаёт `artifacts/Win10ray-Setup-1.3.1.exe` с контрольной суммой. Для неё дополнительно нужен [Inno Setup 6](https://jrsoftware.org/isinfo.php); исходник установщика: `installer/Win10ray.iss`.
 
 ### Проверки
 
@@ -114,6 +114,8 @@ powershell -NoProfile -File tests/Invoke-TunAdapterSmoke.ps1
 ```
 
 Этот тест не переключает системные маршруты или DNS.
+
+Для проверки настоящего EXE-установщика: `powershell -NoProfile -ExecutionPolicy Bypass -File tests/Invoke-InstallerSmoke.ps1`. Тест собирает отдельные установщики без регистрации приложения и ярлыков, устанавливает клиент в временный каталог с пробелами и кириллицей, проверяет версию, сохранение данных и отказ установки. Рабочая установка не меняется.
 
 ### Компоненты
 
@@ -145,7 +147,7 @@ A minimal Xray client for Windows 10 and 11. Native C# and WPF interface, light 
 
 Requires **Windows 10/11 x64**. Published builds do not require a separate .NET installation.
 
-1. Download [Win10ray-Setup-1.3.0.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.0/Win10ray-Setup-1.3.0.exe).
+1. Download [Win10ray-Setup-1.3.1.exe](https://github.com/zephrx0/Win10ray/releases/download/v1.3.1/Win10ray-Setup-1.3.1.exe).
 2. Run the installer and choose an installation folder.
 3. Run `Win10ray.exe`, import a link or subscription, and select a server.
 4. Choose a connection mode and click **Connect**.
@@ -164,15 +166,15 @@ Closing the window hides it in the system tray by default. Use **Exit** in the c
 
 ### Updates
 
-**Release 1.3.0 is distributed as an EXE installer. The current updater supports ZIP packages only; use the link above to install the published EXE. Automatic installation of EXE updates is not supported yet.**
+Starting with **1.3.1**, the client updates through EXE installers from GitHub Releases. Users of 1.3.0 need to install 1.3.1 manually once because the old updater only supported ZIP packages.
 
-The client checks this repository's stable releases on startup. You can disable this under **General**, or use **Check for updates** and **Update client** manually.
+Under **General**, enable startup checks or use **Check for updates** and **Update client**. The client looks for a stable release tagged `vX.Y.Z` with `Win10ray-Setup-X.Y.Z.exe`. When both EXE and ZIP packages exist, the installer is preferred.
 
-Before installation, the client downloads the ZIP and verifies the SHA-256 supplied by GitHub. It then shuts down the connection cleanly. A separate `updater.exe` replaces the files, restores the previous version if installation fails, and restarts the client. Settings in AppData are preserved. The updater itself is updated with the client.
+Before execution, the updater verifies the SHA-256 provided by the [GitHub Releases API](https://docs.github.com/en/rest/releases/assets), the installer identity and its version. The client then shuts down the connection cleanly. A separate `updater.exe` runs Inno Setup with the current installation directory and restarts the client without administrator privileges after success. Profiles and settings in AppData are preserved.
 
-You can also run `updater.exe` manually next to `Win10ray.exe`. For manual installation, quit the client using **Exit** in the tray menu. Your Windows account needs write access to the application folder.
+Updating an installation in Program Files may trigger UAC. Cancellation and installer errors are reported separately. Automatic Windows restarts are disabled; if a restart is required, the updater displays a message and waits for the user. Installation logs are saved to `%LocalAppData%\Win10ray\Updates\<session>\setup.log`.
 
-The current updater looks for `Win10ray-X.Y.Z-win-x64.zip` in a stable release tagged `vX.Y.Z`. It does not run EXE installers. A supported ZIP must contain application files at its root, without an enclosing folder. SHA-256 comes from the `digest` field in the [GitHub Releases API](https://docs.github.com/en/rest/releases/assets). Update requests do not include subscriptions, HWID or authentication tokens.
+You can also run `updater.exe` manually next to `Win10ray.exe`. For manual installation, quit the client using **Exit** in the tray menu. Update requests do not include subscriptions, HWID or authentication tokens.
 
 ### Data and privacy
 
@@ -202,7 +204,7 @@ Publish a self-contained `win-x64` build:
 dotnet publish -c Release -p:PublishProfile=Windows
 ```
 
-Output: `artifacts/Win10ray-1.3.0`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` to build and package a GitHub release ZIP with a checksum.
+Output: `artifacts/Win10ray-1.3.1`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` to build `artifacts/Win10ray-Setup-1.3.1.exe` with a checksum. This also requires [Inno Setup 6](https://jrsoftware.org/isinfo.php); the installer source is `installer/Win10ray.iss`.
 
 ### Tests
 
@@ -218,6 +220,8 @@ powershell -NoProfile -File tests/Invoke-TunAdapterSmoke.ps1
 ```
 
 This adapter test does not switch system routes or DNS.
+
+To exercise a real EXE installer, run `powershell -NoProfile -ExecutionPolicy Bypass -File tests/Invoke-InstallerSmoke.ps1`. The test builds isolated installers without registration or shortcuts, installs into a temporary path containing spaces and Cyrillic characters, and verifies the version, preserved data and installer failure handling. It does not change the working installation.
 
 ### Third-party components
 

@@ -10,7 +10,11 @@ using System.Threading.Tasks;
 
 namespace XrayMetro.Services;
 
-public sealed record ClientRelease(string Version, string DownloadUrl, string Sha256, long Size);
+public sealed record ClientRelease(string Version, string DownloadUrl, string Sha256, long Size)
+{
+    public bool IsInstaller => DownloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase);
+    public string CacheFileName => IsInstaller ? "setup.exe" : "release.zip";
+}
 public sealed record UpdateHandoff(string TargetDirectory, string ArchivePath, ClientRelease Release, int ParentPid, long ParentStartTicks);
 
 public sealed class UpdateService : IDisposable
@@ -42,7 +46,8 @@ public sealed class UpdateService : IDisposable
         if (root.GetProperty("draft").GetBoolean() || root.GetProperty("prerelease").GetBoolean()) return null;
         Version version = ParseVersion(root.GetProperty("tag_name").GetString() ?? "");
         if (version <= ParseVersion(currentVersion)) return null;
-        string name = "Win10ray-" + version.ToString(3) + "-win-x64.zip";
+        string[] names = ["Win10ray-Setup-" + version.ToString(3) + ".exe", "Win10ray-" + version.ToString(3) + "-win-x64.zip"];
+        foreach (string name in names)
         foreach (JsonElement asset in root.GetProperty("assets").EnumerateArray())
         {
             if (asset.GetProperty("name").GetString() != name || asset.GetProperty("state").GetString() != "uploaded") continue;
@@ -51,7 +56,7 @@ public sealed class UpdateService : IDisposable
             Validate(release);
             return release;
         }
-        throw new InvalidDataException("The release has no compatible Windows x64 ZIP.");
+        throw new InvalidDataException("The release has no compatible Windows installer.");
     }
 
     public static void Validate(ClientRelease release)
@@ -59,7 +64,8 @@ public sealed class UpdateService : IDisposable
         Version version = ParseVersion(release.Version);
         if (!Regex.IsMatch(release.Sha256, "^[a-fA-F0-9]{64}$") || release.Size is < 1 or > MaximumArchiveBytes)
             throw new InvalidDataException("Invalid release checksum or size.");
-        string expected = ReleasesUrl + "/download/v" + version.ToString(3) + "/Win10ray-" + version.ToString(3) + "-win-x64.zip";
+        string name = release.IsInstaller ? "Win10ray-Setup-" + version.ToString(3) + ".exe" : "Win10ray-" + version.ToString(3) + "-win-x64.zip";
+        string expected = ReleasesUrl + "/download/v" + version.ToString(3) + "/" + name;
         if (!string.Equals(release.DownloadUrl, expected, StringComparison.Ordinal)) throw new InvalidDataException("Unexpected release source.");
     }
 
@@ -88,7 +94,7 @@ public sealed class UpdateService : IDisposable
     {
         Validate(release);
         Directory.CreateDirectory(directory);
-        string archive = Path.Combine(directory, "release.zip");
+        string archive = Path.Combine(directory, release.CacheFileName);
         bool created = false;
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromMinutes(15));
