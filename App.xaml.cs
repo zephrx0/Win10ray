@@ -54,6 +54,8 @@ public partial class App : Application
             ThemeService.Apply(state.Settings.DarkTheme, "#0078D7");
             _core = new XrayProcessService();
             _viewModel = new MainViewModel(state, settings, _core, _proxy);
+            _viewModel.UpdateReadyToExit += RequestExit;
+            _ = UpdateService.CleanupCompletedAsync();
             _window = new MainWindow(_viewModel);
             MainWindow = _window;
             _window.ExitRequested += RequestExit;

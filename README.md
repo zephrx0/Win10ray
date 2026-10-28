@@ -18,6 +18,7 @@
 - DNS over HTTPS и режим «Российские сайты напрямую».
 - Скорость загрузки и отдачи, трафик за сессию, журнал ядра.
 - Автозапуск, восстановление подключения и работа в трее.
+- Проверка версий и обновление клиента из GitHub Releases.
 - Русский и английский интерфейс по языку Windows, поддержка масштабирования DPI.
 
 ### Установка
@@ -34,6 +35,7 @@
 ```text
 Win10ray/
 ├── Win10ray.exe
+├── updater.exe
 ├── xray/
 │   ├── xray.exe
 │   ├── geoip.dat
@@ -55,6 +57,16 @@ Win10ray/
 DNS по умолчанию: `1.1.1.1`. DNS over HTTPS и исключения для российских сайтов настраиваются в разделе «Маршрутизация». Режим обхода использует `geosite:category-ru` и `geoip:ru`.
 
 Крестик по умолчанию скрывает окно в трей. Для завершения работы используйте «Выход» в клиенте или меню трея.
+
+### Обновления
+
+Клиент проверяет стабильные релизы этого репозитория при запуске. Параметр можно выключить в разделе «Общие». Там же доступны кнопки «Проверить обновления» и «Обновить клиент».
+
+Перед установкой клиент скачивает ZIP и проверяет SHA-256, полученный от GitHub. Затем корректно завершает подключение. Отдельный `updater.exe` заменяет файлы, восстанавливает предыдущую версию при ошибке и запускает клиент снова. Настройки в AppData сохраняются. Updater обновляется вместе с клиентом.
+
+`updater.exe` также можно запустить вручную рядом с `Win10ray.exe`. При ручной установке завершите клиент через «Выход» в меню трея. Для записи в папку приложения нужны права текущего пользователя.
+
+Для следующей версии создайте стабильный релиз с тегом `vX.Y.Z` и прикрепите архив `Win10ray-X.Y.Z-win-x64.zip`. Внутри архива должны лежать файлы клиента без дополнительной внешней папки. SHA-256 берётся из поля `digest` [GitHub Releases API](https://docs.github.com/en/rest/releases/assets). Подписки, HWID и токены авторизации в запросах обновлений не передаются.
 
 ### Данные и приватность
 
@@ -84,7 +96,7 @@ dotnet run --project Win10ray.csproj
 dotnet publish -c Release -p:PublishProfile=Windows
 ```
 
-Результат: `artifacts/Win10ray-1.2.1`. Для распространения упакуйте **всё содержимое** этой папки в ZIP.
+Результат: `artifacts/Win10ray-1.3.0`. Команда `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` собирает клиент и создаёт архив для GitHub Releases с контрольной суммой.
 
 ### Проверки
 
@@ -124,6 +136,7 @@ A minimal Xray client for Windows 10 and 11. Native C# and WPF interface, light 
 - DNS over HTTPS and direct routing for Russian websites.
 - Upload and download speed, session traffic and live core logs.
 - Start with Windows, restore connections and minimize to the system tray.
+- Check for client updates and install them from GitHub Releases.
 - Russian or English interface based on the Windows language, with DPI scaling support.
 
 ### Installation
@@ -146,6 +159,16 @@ Keep the `xray`, `tun` and `service` folders next to `Win10ray.exe`. Xray needs 
 The default DNS server is `1.1.1.1`. Configure DNS over HTTPS and direct routing for Russian websites on the **Routing** page. Direct routing uses `geosite:category-ru` and `geoip:ru`.
 
 Closing the window hides it in the system tray by default. Use **Exit** in the client or the tray menu to quit.
+
+### Updates
+
+The client checks this repository's stable releases on startup. You can disable this under **General**, or use **Check for updates** and **Update client** manually.
+
+Before installation, the client downloads the ZIP and verifies the SHA-256 supplied by GitHub. It then shuts down the connection cleanly. A separate `updater.exe` replaces the files, restores the previous version if installation fails, and restarts the client. Settings in AppData are preserved. The updater itself is updated with the client.
+
+You can also run `updater.exe` manually next to `Win10ray.exe`. For manual installation, quit the client using **Exit** in the tray menu. Your Windows account needs write access to the application folder.
+
+To publish the next version, create a stable release tagged `vX.Y.Z` and attach `Win10ray-X.Y.Z-win-x64.zip`. The ZIP must contain application files at its root, without an enclosing folder. SHA-256 comes from the `digest` field in the [GitHub Releases API](https://docs.github.com/en/rest/releases/assets). Update requests do not include subscriptions, HWID or authentication tokens.
 
 ### Data and privacy
 
@@ -175,7 +198,7 @@ Publish a self-contained `win-x64` build:
 dotnet publish -c Release -p:PublishProfile=Windows
 ```
 
-Output: `artifacts/Win10ray-1.2.1`. Distribute a ZIP containing **all files and subfolders** in this directory.
+Output: `artifacts/Win10ray-1.3.0`. Run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1` to build and package a GitHub release ZIP with a checksum.
 
 ### Tests
 

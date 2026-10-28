@@ -12,7 +12,7 @@
     <AssemblyName>Win10ray</AssemblyName>
     <Product>Win10ray</Product>
     <Title>Win10ray</Title>
-    <Version>1.2.1</Version>
+    <Version>1.3.0</Version>
     <RootNamespace>XrayMetro</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
@@ -20,15 +20,21 @@
   <ItemGroup>
     <Resource Include="Assets\Flags\*.png" />
     <None Update="Assets\Flags\SOURCE.txt" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-    <Compile Remove="tests\**; .tools\**; TunService\**" />
-    <None Remove="tests\**; .tools\**; TunService\**" />
-    <Page Remove="TunService\**" />
+    <Compile Remove="tests\**; .tools\**; TunService\**; Updater\**" />
+    <None Remove="tests\**; .tools\**; TunService\**; Updater\**" />
+    <Page Remove="TunService\**; Updater\**" />
+    <ApplicationDefinition Remove="Updater\**" />
     <Content Include="xray\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" Exclude="xray\README.md" />
     <Content Include="tun\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <Content Include=".tools\helper\$(Configuration)\Win10ray.TunService.exe" Link="service\Win10ray.TunService.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <Content Include=".tools\updater\$(Configuration)\updater.exe" Link="updater.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Update="docs\images\connection.png" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <None Update="README.md" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
   <Target Name="BuildTunHelper" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
     <MSBuild Projects="TunService\Win10ray.TunService.csproj" Targets="Restore;Publish" BuildInParallel="false" Properties="Configuration=$(Configuration);PublishDir=$(MSBuildThisFileDirectory).tools\helper\$(Configuration)\;OutputPath=bin\$(Configuration)\" RemoveProperties="PublishProfile;IntermediateOutputPath;BaseIntermediateOutputPath;PublishSingleFile;IncludeNativeLibrariesForSelfExtract;DebugType;TargetFramework;UseWPF;UseWindowsForms" />
+  </Target>
+  <Target Name="BuildUpdater" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+    <MSBuild Projects="Updater\Win10ray.Updater.csproj" Targets="Restore;Publish" BuildInParallel="false" Properties="Configuration=$(Configuration);PublishDir=$(MSBuildThisFileDirectory).tools\updater\$(Configuration)\;OutputPath=bin\$(Configuration)\" RemoveProperties="PublishProfile;IntermediateOutputPath;BaseIntermediateOutputPath;PublishSingleFile;IncludeNativeLibrariesForSelfExtract;DebugType;TargetFramework;UseWPF;UseWindowsForms" />
   </Target>
 </Project>

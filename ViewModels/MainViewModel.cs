@@ -49,6 +49,11 @@ public sealed class MainViewModel : ObservableObject
     private bool _isConnected, _isBusy, _closing, _isRenaming;
     private int _selectedPage, _autoStartVersion;
     private string _message = "", _logs = "", _renameText = "", _subscriptionUrl = "";
+    private bool _isUpdating;
+    private double _updateProgress;
+    private string _updateStatus = "";
+    private ClientRelease? _clientRelease;
+    public event Action? UpdateReadyToExit;
     private string _statusText = LocalizationService.Get("Disconnected"), _statusDetail = "";
     private string _uploadSpeed = FormatBytes(0) + LocalizationService.Pick("/с", "/s"), _downloadSpeed = FormatBytes(0) + LocalizationService.Pick("/с", "/s"), _sessionTraffic = FormatBytes(0);
 
@@ -84,6 +89,8 @@ public sealed class MainViewModel : ObservableObject
         CopyLogsCommand = new(_ => { try { Clipboard.SetText(Logs); Message = LocalizationService.Pick("Логи скопированы", "Copied"); } catch { Message = LocalizationService.Pick("Буфер обмена занят. Повторите копирование.", "Clipboard is busy. Try again."); } });
         ClearLogsCommand = new(parameter => { _logLines.Clear(); while (_pendingLogs.TryDequeue(out _)) { } Logs = ""; });
         DismissMessageCommand = new(_ => Message = "");
+        CheckClientUpdatesCommand = new(_ => CheckClientUpdatesAsync(), ReportError, _ => !IsUpdating && !_closing);
+        InstallClientUpdateCommand = new(_ => InstallClientUpdateAsync(), ReportError, _ => !IsUpdating && !IsBusy && !_closing && HasClientUpdate);
         _core.LogReceived += EnqueueLog;
         _core.UnexpectedExit += OnCoreExit;
         _tun.LogReceived += EnqueueLog;
@@ -100,6 +107,13 @@ public sealed class MainViewModel : ObservableObject
     public string SearchText { get => _searchText; set { if (Set(ref _searchText, value?.Trim() ?? "")) ServerView.Refresh(); } }
     public string ClientVersion => HardwareIdService.ClientVersion;
     public string CoreVersion { get => _coreVersion; private set => Set(ref _coreVersion, value); }
+    public AsyncCommand CheckClientUpdatesCommand { get; }
+    public AsyncCommand InstallClientUpdateCommand { get; }
+    public bool IsUpdating { get => _isUpdating; private set { if (Set(ref _isUpdating, value)) { CheckClientUpdatesCommand.Notify(); InstallClientUpdateCommand.Notify(); } } }
+    public double UpdateProgress { get => _updateProgress; private set => Set(ref _updateProgress, value); }
+    public string UpdateStatus { get => _updateStatus; private set => Set(ref _updateStatus, value); }
+    public bool HasClientUpdate => _clientRelease is not null;
+    public bool CheckUpdatesOnStartup { get => _state.Settings.CheckUpdatesOnStartup; set { _state.Settings.CheckUpdatesOnStartup = value; OnPropertyChanged(); Persist(); } }
     public RelayCommand SelectServersTabCommand { get; }
     public RelayCommand CancelConnectionCommand { get; }
     public RelayCommand StartRenameCommand { get; }
@@ -199,6 +213,39 @@ public sealed class MainViewModel : ObservableObject
         catch (Exception exception) { ReportError(exception); }
         await RestoreConnectionAsync();
         await version;
+        if (CheckUpdatesOnStartup && !_closing) _ = CheckClientUpdatesAsync(silent: true);
+    }
+
+    private async Task CheckClientUpdatesAsync(bool silent = false)
+    {
+        if (IsUpdating || _closing) return;
+        IsUpdating = true; UpdateStatus = LocalizationService.Get("CheckingClientUpdates");
+        try
+        {
+            using var service = new UpdateService();
+            _clientRelease = await service.CheckAsync(ClientVersion, _lifetime.Token);
+            OnPropertyChanged(nameof(HasClientUpdate));
+            UpdateStatus = _clientRelease is null ? LocalizationService.Get("ClientUpToDate") : LocalizationService.Get("ClientUpdateAvailable") + _clientRelease.Version;
+            if (silent && _clientRelease is not null) Message = UpdateStatus;
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+        catch { UpdateStatus = LocalizationService.Get("ClientUpdateFailed"); }
+        finally { IsUpdating = false; }
+    }
+
+    private async Task InstallClientUpdateAsync()
+    {
+        if (_clientRelease is null || IsUpdating || _closing) return;
+        IsUpdating = true; UpdateProgress = 0; UpdateStatus = LocalizationService.Get("ClientUpdateDownload");
+        try
+        {
+            await UpdateLauncher.PrepareAsync(_clientRelease, new Progress<double>(value => UpdateProgress = value), _lifetime.Token);
+            _startupCancellation?.Cancel();
+            UpdateReadyToExit?.Invoke();
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+        catch { UpdateStatus = LocalizationService.Get("ClientUpdateInstallFailed"); }
+        finally { IsUpdating = false; }
     }
 
     public async Task RestoreConnectionAsync()
@@ -248,6 +295,7 @@ public sealed class MainViewModel : ObservableObject
     }
     private void NotifyCommands()
     {
+        CheckClientUpdatesCommand?.Notify(); InstallClientUpdateCommand?.Notify();
         ToggleConnectionCommand?.Notify(); ImportClipboardCommand?.Notify(); PingAllCommand?.Notify();
         DeleteServerCommand?.Notify(); RenameServerCommand?.Notify(); AddSubscriptionCommand?.Notify();
         UpdateSubscriptionsCommand?.Notify(); DeleteSubscriptionCommand?.Notify();

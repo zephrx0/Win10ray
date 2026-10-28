@@ -156,6 +156,7 @@ if (xrayArgument >= 0 && xrayArgument + 1 < args.Length)
 }
 passed += await ServicesSupportTests.RunAsync();
 passed += await FailoverTests.RunAsync();
+passed += await UpdateTests.RunAsync();
 if (args.Contains("--ui", StringComparer.Ordinal)) passed += await UiSmokeTests.RunAsync();
 int watchdogArgument = Array.IndexOf(args, "--watchdog-exe");
 if (watchdogArgument >= 0 && watchdogArgument + 1 < args.Length) passed += await CrashCleanupTests.TestWatchdogAsync(args[watchdogArgument + 1]);

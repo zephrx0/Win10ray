@@ -12,6 +12,16 @@ public static class LocalizationService
     public static string Get(string key) => Labels.TryGetValue(key, out var pair) ? Pick(pair.Ru, pair.En) : key;
     private static readonly Dictionary<string, (string Ru, string En)> Labels = new()
     {
+        ["ClientUpdates"] = ("Обновления", "Updates"),
+        ["CheckUpdatesOnStartup"] = ("Проверять обновления при запуске", "Check for updates on startup"),
+        ["CheckClientUpdates"] = ("Проверить обновления", "Check for updates"),
+        ["InstallClientUpdate"] = ("Обновить клиент", "Update client"),
+        ["CheckingClientUpdates"] = ("Проверка обновлений...", "Checking for updates..."),
+        ["ClientUpToDate"] = ("Установлена актуальная версия", "You are up to date"),
+        ["ClientUpdateAvailable"] = ("Доступна версия ", "Version available: "),
+        ["ClientUpdateFailed"] = ("Не удалось проверить обновления. Проверьте доступ к GitHub.", "Could not check for updates. Check access to GitHub."),
+        ["ClientUpdateDownload"] = ("Загрузка и проверка обновления...", "Downloading and verifying update..."),
+        ["ClientUpdateInstallFailed"] = ("Обновление не установлено. Проверьте доступ к GitHub, наличие updater.exe и свободное место.", "Update was not installed. Check access to GitHub, updater.exe and available disk space."),
         ["WaitingNetwork"] = ("Ожидание сети", "Waiting for network"),
         ["PreparingTun"] = ("Подготовка службы TUN", "Preparing the TUN service"),
         ["StartupNetworkTimeout"] = ("Не удалось восстановить подключение за 45 секунд. Проверьте сеть и журнал.", "Could not restore the connection within 45 seconds. Check your network and log."),
