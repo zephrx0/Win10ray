@@ -12,7 +12,7 @@
     <AssemblyName>Win10ray</AssemblyName>
     <Product>Win10ray</Product>
     <Title>Win10ray</Title>
-    <Version>1.4.3-experimental.1</Version>
+    <Version>1.4.3-experimental.2</Version>
     <RootNamespace>XrayMetro</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>

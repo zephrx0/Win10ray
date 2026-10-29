@@ -14,7 +14,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LangVersion>12</LangVersion>
     <AssemblyName>updater</AssemblyName>
-    <Version>1.4.3-experimental.1</Version>
+    <Version>1.4.3-experimental.2</Version>
     <Product>Win10ray Updater</Product>
     <ApplicationIcon>../Assets/Win10ray.ico</ApplicationIcon>
     <ApplicationManifest>../app.manifest</ApplicationManifest>
