@@ -110,7 +110,7 @@ public sealed class XrayProcessService : IDisposable
             try
             {
                 using JsonDocument document = JsonDocument.Parse(configJson);
-                _usesProcessOverride = document.RootElement.GetProperty("inbounds").EnumerateArray().Any(inbound => inbound.TryGetProperty("tag", out JsonElement tag) && tag.GetString() == "process-override");
+                _usesProcessOverride = document.RootElement.GetProperty("inbounds").EnumerateArray().Any(inbound => inbound.TryGetProperty("tag", out JsonElement tag) && tag.GetString() == "process-override" && inbound.GetProperty("port").GetInt32() == 10810);
             }
             catch (JsonException) { throw new InvalidOperationException(LocalizationService.Pick("Некорректная конфигурация Xray.", "Invalid Xray configuration.")); }
             ExecutablePath = LocateExecutable();
@@ -226,7 +226,8 @@ public sealed class XrayProcessService : IDisposable
                 {
                     string name = item.GetProperty("name").GetString() ?? "";
                     if (!name.StartsWith("inbound>>>socks-in>>>traffic>>>", StringComparison.Ordinal) &&
-                        !name.StartsWith("inbound>>>http-in>>>traffic>>>", StringComparison.Ordinal)) continue;
+                        !name.StartsWith("inbound>>>http-in>>>traffic>>>", StringComparison.Ordinal) &&
+                        !name.StartsWith("inbound>>>process-override>>>traffic>>>", StringComparison.Ordinal)) continue;
                     if (!item.TryGetProperty("value", out JsonElement valueElement)) continue;
                     long value = valueElement.ValueKind == JsonValueKind.String
                         ? long.Parse(valueElement.GetString()!, CultureInfo.InvariantCulture)

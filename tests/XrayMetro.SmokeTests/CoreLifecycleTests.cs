@@ -97,6 +97,17 @@ internal static class CoreLifecycleTests
             TrafficSnapshot counters = await client.QueryStatsAsync(timeout.Token);
             Assert(counters.UplinkBytes > 0 && counters.DownlinkBytes > 0, "statsquery reports real bidirectional traffic");
             await client.StopAsync();
+            // Route the real HTTP fixture through the process-override tag, without using
+            // any system proxy settings or creating a TUN adapter.
+            System.Text.Json.Nodes.JsonNode processConfig = System.Text.Json.Nodes.JsonNode.Parse(clientConfig)!;
+            processConfig["inbounds"]![1]!["tag"] = "process-override";
+            await client.StartAsync(processConfig.ToJsonString(), [credential], false, timeout.Token);
+            Task processServe = ServeHttpAsync(origin, timeout.Token);
+            Assert(await http.GetStringAsync($"http://127.0.0.1:{originPort}/process-stats", timeout.Token) == "xray-loopback-ok", "process override traffic reaches the test origin");
+            await processServe;
+            TrafficSnapshot processCounters = await client.QueryStatsAsync(timeout.Token);
+            Assert(processCounters.UplinkBytes > 0 && processCounters.DownlinkBytes > 0, "process override is included in session traffic counters");
+            await client.StopAsync();
             Assert(!client.IsRunning, "core stopped");
             Assert(!File.Exists(Path.Combine(root, "runtime", "config.json")), "runtime credentials removed on stop");
             lock (logs) Assert(logs.All(line => !line.Contains(credential, StringComparison.Ordinal)), "process logs redact credentials");
@@ -131,7 +142,7 @@ internal static class CoreLifecycleTests
             backend.Kill(true);
             await backend.WaitForExitAsync(timeout.Token);
             await Task.WhenAll(backendOutput, backendError);
-            return 15;
+            return 17;
         }
         finally
         {
