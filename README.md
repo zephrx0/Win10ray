@@ -17,7 +17,7 @@
 
 ## Скачать
 
-[Стабильная версия](https://github.com/zephrx0/Win10ray/releases/latest) · [Экспериментальная версия с OpenVPN](https://github.com/zephrx0/Win10ray/releases/tag/v1.4.3-experimental.1) · [Все релизы](https://github.com/zephrx0/Win10ray/releases)
+[Стабильная версия](https://github.com/zephrx0/Win10ray/releases/latest) · [Экспериментальная версия с OpenVPN](https://github.com/zephrx0/Win10ray/releases/tag/v1.4.3-experimental.2) · [Все релизы](https://github.com/zephrx0/Win10ray/releases)
 
 Запустите `Win10ray-Setup-*.exe`, импортируйте ссылку или подписку и нажмите «Подключить». Для первого включения TUN подтвердите запрос администратора.
 
@@ -52,7 +52,7 @@ A native Xray client with a Windows 10 style interface. Built with C# and WPF.
 
 ### Download
 
-[Stable release](https://github.com/zephrx0/Win10ray/releases/latest) · [Experimental OpenVPN build](https://github.com/zephrx0/Win10ray/releases/tag/v1.4.3-experimental.1) · [All releases](https://github.com/zephrx0/Win10ray/releases)
+[Stable release](https://github.com/zephrx0/Win10ray/releases/latest) · [Experimental OpenVPN build](https://github.com/zephrx0/Win10ray/releases/tag/v1.4.3-experimental.2) · [All releases](https://github.com/zephrx0/Win10ray/releases)
 
 Run `Win10ray-Setup-*.exe`, import a link or subscription and click **Connect**. TUN requires administrator approval on first use.
 
