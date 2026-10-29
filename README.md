@@ -34,7 +34,7 @@
 Windows x64, .NET SDK 8. Ядра загружаются отдельно с проверкой SHA-256.
 
 ```powershell
-powershell -NoProfile -File scripts/Prepare-Cores.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Prepare-Cores.ps1
 dotnet build
 dotnet publish -c Release -p:PublishProfile=Windows
 ```
