@@ -7,6 +7,7 @@ using XrayMetro.Models;
 using XrayMetro.Services;
 
 if (args.Length > 0 && args[0] == "--core-child") { await CrashCleanupTests.RunCoreChildAsync(args); return; }
+if (args.Length > 0 && args[0] == "--routing-only") { Console.WriteLine("PASS: " + await RoutingAndGroupingTests.RunAsync(args) + " routing/grouping checks."); return; }
 int cultureArgument = Array.IndexOf(args, "--culture");
 if (cultureArgument >= 0 && cultureArgument + 1 < args.Length)
 {
@@ -156,6 +157,7 @@ if (xrayArgument >= 0 && xrayArgument + 1 < args.Length)
 }
 passed += await ServicesSupportTests.RunAsync();
 passed += await FeatureUpdateTests.RunAsync(args);
+passed += await RoutingAndGroupingTests.RunAsync(args);
 passed += await FailoverTests.RunAsync();
 passed += await UpdateTests.RunAsync();
 int installerArgument = Array.IndexOf(args, "--installer-test");

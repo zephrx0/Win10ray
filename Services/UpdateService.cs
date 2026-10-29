@@ -99,9 +99,12 @@ public sealed class UpdateService : IDisposable
             foreach (JsonElement item in document.RootElement.EnumerateArray())
             {
                 ClientRelease? release;
-                try { release = ParseRelease(item.GetRawText(), currentVersion, allowExperimental: true); }
+                try { release = ParseRelease(item.GetRawText(), "0.0.0", allowExperimental: true); }
                 catch (Exception exception) when (exception is InvalidDataException or KeyNotFoundException or InvalidOperationException) { continue; }
-                if (release is not null && (best is null || CompareVersions(release.Version, best.Version) > 0)) best = release;
+                if (release is not { IsExperimental: true }) continue;
+                bool eligible = CompareVersions(release.Version, currentVersion) > 0 ||
+                    !IsExperimentalVersion(currentVersion) && ParseVersion(release.Version) >= ParseVersion(currentVersion);
+                if (eligible && (best is null || CompareVersions(release.Version, best.Version) > 0)) best = release;
             }
             if (document.RootElement.GetArrayLength() < 100) break;
         }

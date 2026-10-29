@@ -45,6 +45,7 @@ public sealed partial class MainViewModel : ObservableObject
     private long _trafficCarry, _sessionBytes;
     private string _searchText = "", _coreVersion = "...";
     private ServerProfile? _selectedServer;
+    private HashSet<Guid> _serverRepresentatives = [];
     private SubscriptionProfile? _selectedSubscription;
     private bool _isConnected, _isBusy, _closing, _isRenaming;
     private int _selectedPage, _autoStartVersion;
@@ -67,11 +68,12 @@ public sealed partial class MainViewModel : ObservableObject
         if (_healthInterval <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(healthInterval));
         _state.Settings.UseSystemProxy = !_state.Settings.UseTun;
         Servers = new(state.Servers); Subscriptions = new(state.Subscriptions);
+        ServerChoices = new ListCollectionView(Servers) { Filter = item => item is ServerProfile server && _serverRepresentatives.Contains(server.Id) };
         ServerView = new ListCollectionView(Servers);
-        ServerView.Filter = item => item is ServerProfile server && (SearchText.Length == 0 || server.Name.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase) || server.Address.Contains(SearchText, StringComparison.OrdinalIgnoreCase) || server.GroupName.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase));
+        ServerView.Filter = item => item is ServerProfile server && _serverRepresentatives.Contains(server.Id) && (SearchText.Length == 0 || server.GroupName.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase) || Servers.Any(member => ServerGroupingService.SameGroup(member, server) && (member.Name.Contains(SearchText, StringComparison.CurrentCultureIgnoreCase) || member.Address.Contains(SearchText, StringComparison.OrdinalIgnoreCase))));
         ServerView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ServerProfile.GroupName)));
-        UpdateServerGroups();
         _selectedServer = Servers.FirstOrDefault(s => s.Id == state.Settings.LastServerId) ?? Servers.FirstOrDefault();
+        UpdateServerGroups();
         _renameText = _selectedServer?.Name ?? "";
         _selectedSubscription = Subscriptions.FirstOrDefault();
         NavigateCommand = new(p => { if (int.TryParse(p?.ToString(), out int page)) SelectedPage = page; });
@@ -108,6 +110,7 @@ public sealed partial class MainViewModel : ObservableObject
     public ObservableCollection<ServerProfile> Servers { get; }
     public ObservableCollection<SubscriptionProfile> Subscriptions { get; }
     public ICollectionView ServerView { get; }
+    public ICollectionView ServerChoices { get; }
     public int ServersTab { get => _serversTab; set => Set(ref _serversTab, value); }
     public string SearchText { get => _searchText; set { if (Set(ref _searchText, value?.Trim() ?? "")) ServerView.Refresh(); } }
     public string ClientVersion => HardwareIdService.ClientVersion;
@@ -165,6 +168,7 @@ public sealed partial class MainViewModel : ObservableObject
             IsRenaming = false;
             RenameText = value?.Name ?? "";
             _state.Settings.LastServerId = value?.Id;
+            UpdateServerGroups();
             NotifyCommands(); Persist();
         }
     }
@@ -191,7 +195,7 @@ public sealed partial class MainViewModel : ObservableObject
     public bool UseTun { get => _state.Settings.UseTun; set { if (CanEditConnection) ConnectionModeIndex = value ? 1 : 0; } }
     public bool SendHwid { get => _state.Settings.SendHwid; set { _state.Settings.SendHwid = value; OnPropertyChanged(); Persist(); } }
     public bool AutoSwitchServers { get => _state.Settings.AutoSwitchServers; set { _state.Settings.AutoSwitchServers = value; OnPropertyChanged(); Persist(); } }
-    public string ServerCount => Servers.Count.ToString(System.Globalization.CultureInfo.CurrentCulture);
+    public string ServerCount => _serverRepresentatives.Count.ToString(System.Globalization.CultureInfo.CurrentCulture);
     public string StatusText { get => _statusText; private set { if (Set(ref _statusText, value)) OnPropertyChanged(nameof(HasConnectionError)); } }
     public bool HasConnectionError => StatusText == LocalizationService.Get("Error");
     public string StatusDetail { get => _statusDetail; private set => Set(ref _statusDetail, value); }
@@ -323,6 +327,7 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanEditConnection));
         OnPropertyChanged(nameof(CanEditProcessRules));
         AddProcessRuleCommand?.Notify(); DeleteProcessRuleCommand?.Notify(); BrowseProcessCommand?.Notify(); SelectRunningProcessCommand?.Notify();
+        ApplyProcessRulesCommand?.Notify();
         ToggleConnectionCommand?.Notify(); ImportClipboardCommand?.Notify(); PingAllCommand?.Notify();
         DeleteServerCommand?.Notify(); RenameServerCommand?.Notify(); AddSubscriptionCommand?.Notify();
         UpdateSubscriptionsCommand?.Notify(); UpdateSubscriptionCommand?.Notify(); DeleteSubscriptionCommand?.Notify();
@@ -399,7 +404,8 @@ public sealed partial class MainViewModel : ObservableObject
             EnqueueLog($"TUN service ready: {preparation.ElapsedMilliseconds} ms.");
         }
         bool autoSwitch = AutoSwitchServers && server.SubscriptionId is not null;
-        ServerProfile[] candidates = autoSwitch ? ServerFailoverService.Candidates(Servers.ToArray(), server, skipCurrent) : skipCurrent ? [] : [server];
+        ServerProfile[] grouped = ServerGroupingService.Candidates(Servers, server, skipCurrent);
+        ServerProfile[] candidates = autoSwitch ? grouped.Concat(ServerFailoverService.Candidates(Servers.ToArray(), server, skipCurrent)).DistinctBy(candidate => candidate.Id).ToArray() : grouped;
         StatusText = LocalizationService.Get("Connecting");
         int attemptNumber = 0;
         ServerProfile available = await ServerFailoverService.ConnectAsync(candidates, async (candidate, cancellation) =>
@@ -448,8 +454,9 @@ public sealed partial class MainViewModel : ObservableObject
             finally { if (!ready) await _core.StopAsync(); }
         }, token);
         token.ThrowIfCancellationRequested();
-        if (UseTun) await _tun.StartAsync(token, UseDnsOverHttps, DnsOverHttpsUrl, BlockAds, ProcessRules.ToArray(), DefaultRouteDirect);
+        if (UseTun) await _tun.StartAsync(token, UseDnsOverHttps, DnsOverHttpsUrl, BlockAds, ProcessRules.ToArray());
         else await Task.Run(_proxy.Enable, token);
+        HasPendingProcessRules = false;
         if (!_core.IsRunning) throw new InvalidOperationException(LocalizationService.Pick("Ядро Xray остановилось во время подключения.", "Xray stopped during connection."));
         available.PingFailed = false;
         SelectedServer = available;
@@ -499,7 +506,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             if (_closing || !IsConnected || generation != _sessionGeneration) return;
             ServerProfile? previous = SelectedServer;
-            bool switchServer = AutoSwitchServers && previous?.SubscriptionId is not null;
+            bool switchServer = previous is not null && (AutoSwitchServers && previous.SubscriptionId is not null || ServerGroupingService.Candidates(Servers, previous, true).Length > 0);
             _connectCancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
             IsBusy = true;
             _trafficCarry = _sessionBytes;
@@ -638,14 +645,16 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task DeleteServerAsync()
     {
         if (SelectedServer is null) return;
-        Servers.Remove(SelectedServer); SelectedServer = Servers.FirstOrDefault(); RefreshServers(); await SaveAsync();
+        foreach (ServerProfile member in Servers.Where(server => ServerGroupingService.SameGroup(server, SelectedServer)).ToArray()) Servers.Remove(member);
+        SelectedServer = Servers.FirstOrDefault(); RefreshServers(); await SaveAsync();
     }
     private async Task RenameServerAsync()
     {
         if (SelectedServer is null) return;
         string name = RenameText.Trim();
         if (name.Length is < 1 or > 100) throw new InvalidOperationException(LocalizationService.Pick("Название должно содержать от 1 до 100 символов.", "Name must contain 1 to 100 characters."));
-        SelectedServer.Name = name; SelectedServer.HasCustomName = true; IsRenaming = false; ServerView.Refresh(); await SaveAsync(); Message = LocalizationService.Pick("Название сохранено", "Saved");
+        foreach (ServerProfile member in Servers.Where(server => ServerGroupingService.SameGroup(server, SelectedServer)).ToArray()) { if (member.ProviderName.Length == 0) member.ProviderName = member.Name; member.Name = name; member.HasCustomName = true; }
+        IsRenaming = false; RefreshServers(); await SaveAsync(); Message = LocalizationService.Pick("Название сохранено", "Saved");
     }
     private void RefreshServers()
     {
@@ -658,6 +667,9 @@ public sealed partial class MainViewModel : ObservableObject
     {
         foreach (ServerProfile server in Servers)
             server.GroupName = Subscriptions.FirstOrDefault(subscription => subscription.Id == server.SubscriptionId)?.Name ?? LocalizationService.Get("Imported");
+        _serverRepresentatives = ServerGroupingService.Representatives(Servers, SelectedServer);
+        ServerChoices.Refresh(); ServerView.Refresh();
+        OnPropertyChanged(nameof(ServerCount));
     }
     private async Task AddSubscriptionAsync()
     {
@@ -679,11 +691,13 @@ public sealed partial class MainViewModel : ObservableObject
         foreach (ServerProfile server in old) Servers.Remove(server);
         foreach (ServerProfile server in incoming.DistinctBy(s => s.SourceKey))
         {
+            server.ProviderName = server.Name;
             server.FlagCode = CountryFlagService.CountryCode(server.Name);
             ServerProfile? previous = old.FirstOrDefault(s => s.SourceKey == server.SourceKey);
             server.SubscriptionId = subscription.Id;
             if (previous is not null)
             {
+                previous.ProviderName = server.ProviderName;
                 previous.FlagCode = server.FlagCode;
                 if (!previous.HasCustomName) previous.Name = server.Name;
                 Servers.Add(previous);

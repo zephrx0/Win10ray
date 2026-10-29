@@ -95,7 +95,16 @@ internal static class ViewModelConnectionTests
             await restoring.WaitAsync(deadline.Token);
             Assert(!vm.IsConnected && !vm.IsBusy && !bootState.Settings.ResumeConnection && !core.IsRunning, "startup cancellation stops retries, the core and the pending TUN session");
             await vm.ShutdownAsync(); vm = null;
-            return 12;
+            tun.Stall = false; bootState.Settings.ResumeConnection = true;
+            vm = new MainViewModel(bootState, new SettingsService(directory), core, proxy, new ServerHealthService(new Uri($"http://127.0.0.1:{originPort}/health")), TimeSpan.FromMilliseconds(150), tun);
+            await vm.RestoreConnectionAsync();
+            vm.ProcessInput = "browser.exe"; vm.AddProcessRuleCommand.Execute(null);
+            Assert(vm.CanEditProcessRules && vm.HasPendingProcessRules, "connected users can edit bypass applications");
+            var apply = typeof(MainViewModel).GetMethod("ApplyProcessRulesAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+            await ((Task)apply.Invoke(vm, null)!).WaitAsync(deadline.Token);
+            Assert(vm.IsConnected && !vm.HasPendingProcessRules && tun.Rules.Single().Value == "browser.exe", "apply reconnects using the changed application rules");
+            await vm.ShutdownAsync(); vm = null;
+            return 14;
         }
         finally
         {
@@ -124,10 +133,12 @@ internal static class ViewModelConnectionTests
         public int Starts { get; private set; }
         public bool Running { get; private set; }
         public bool Stall { get; set; }
+        public ProcessRouteRule[] Rules { get; private set; } = [];
         public Task PrepareAsync(CancellationToken token) { token.ThrowIfCancellationRequested(); return Task.CompletedTask; }
         public async Task StartAsync(CancellationToken token, bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null, bool blockAds = true, ProcessRouteRule[]? processRules = null, bool defaultRouteDirect = false)
         {
             Starts++;
+            Rules = processRules?.ToArray() ?? [];
             if (Failures-- > 0) throw TunServiceClient.Failure("adapter_timeout");
             if (Stall) await Task.Delay(Timeout.Infinite, token);
             Running = true;

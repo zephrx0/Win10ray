@@ -192,6 +192,8 @@ public sealed class SettingsService
         if (state.Settings.ProcessRules.Count > 32) throw new JsonException();
         foreach (ProcessRouteRule rule in state.Settings.ProcessRules)
             try { ProcessRouteRule.Validate(rule); } catch (ArgumentException) { throw new JsonException(); }
+        state.Settings.DefaultRouteDirect = false;
+        state.Settings.ProcessRules.RemoveAll(rule => rule.Action != ProcessRouteAction.Direct);
         state.Settings.UseSystemProxy = !state.Settings.UseTun;
     }
 }

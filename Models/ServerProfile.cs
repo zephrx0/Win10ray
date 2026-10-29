@@ -23,6 +23,10 @@ public sealed class ServerProfile : ObservableObject
     private string _flagCode = "";
     public string FlagCode { get => _flagCode; set { if (Set(ref _flagCode, value)) { OnPropertyChanged(nameof(FlagImage)); OnPropertyChanged(nameof(HasFlag)); } } }
     public bool HasCustomName { get; set; } = true;
+    public string ProviderName { get; set; } = "";
+    private int _endpointCount = 1;
+    [JsonIgnore] public int EndpointCount { get => _endpointCount; set { if (Set(ref _endpointCount, value)) OnPropertyChanged(nameof(AddressLabel)); } }
+    [JsonIgnore] public string AddressLabel => EndpointCount > 1 ? LocalizationService.Pick($"Узлов: {EndpointCount}", $"Nodes: {EndpointCount}") : Address;
     [JsonIgnore] public string DisplayName => CountryFlagService.DisplayName(Name);
     [JsonIgnore] public System.Windows.Media.ImageSource? FlagImage => CountryFlagService.Image(string.IsNullOrEmpty(FlagCode) ? CountryFlagService.CountryCode(Name) : FlagCode);
     [JsonIgnore] public bool HasFlag => FlagImage is not null;

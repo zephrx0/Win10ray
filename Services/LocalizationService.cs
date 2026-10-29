@@ -14,8 +14,10 @@ public static class LocalizationService
     {
         ["Refreshing"] = ("Обновление...", "Refreshing..."),
         ["BlockAds"] = ("Блокировать рекламу и трекеры", "Block ads and trackers"),
-        ["ProcessRouting"] = ("Правила приложений", "Application rules"),
-        ["ProcessRoutingHint"] = ("Работает только в TUN. Правила выше блокировки и обхода российских сайтов. Изменения применятся при следующем подключении.", "Available in TUN only. Rules override blocking and Russian site bypass. Changes apply on the next connection."),
+        ["ProcessRouting"] = ("Напрямую для приложений", "Direct access for apps"),
+        ["ProcessRoutingHint"] = ("Только в TUN. Добавьте приложения, которые должны обходить VPN. После изменения списка нажмите «Применить».", "TUN only. Add apps that should bypass the VPN. After changing the list, click Apply."),
+        ["ApplyProcessRules"] = ("Применить", "Apply"),
+        ["DirectAction"] = ("Напрямую", "Direct"),
         ["DefaultRoute"] = ("Режим приложений", "Application mode"),
         ["AllProxy"] = ("Выбранное - напрямую", "Selected - direct"),
         ["AllDirect"] = ("Всё напрямую", "All direct"),
