@@ -24,6 +24,7 @@ public static class TunConfigBuilder
             config["dns"]!["rules"] = new JsonArray(dnsBlock);
         }
         ProcessRouteRule[] processes = processRules ?? [];
+        config["route"]!["find_process"] = processes.Length > 0;
         if (processes.Length > 32) throw new ArgumentException("Too many process rules.");
         JsonArray routeRules = (JsonArray)config["route"]!["rules"]!;
         JsonArray dnsRules = config["dns"]!["rules"] as JsonArray ?? new JsonArray();
@@ -32,8 +33,9 @@ public static class TunConfigBuilder
         foreach (ProcessRouteRule rule in processes)
         {
             ProcessRouteRule.Validate(rule);
-            string match = rule.IsPath ? "process_path" : "process_name";
+            const string match = "process_path_regex";
             string value = rule.IsPath ? System.IO.Path.GetFullPath(rule.Value) : rule.Value;
+            value = WindowsProcessPattern(value, rule.IsPath);
             JsonObject route = new() { [match] = new JsonArray(value), ["action"] = rule.Action == ProcessRouteAction.Block ? "reject" : "route" };
             if (rule.Action == ProcessRouteAction.Block) route["no_drop"] = true;
             else route["outbound"] = rule.Action == ProcessRouteAction.Direct ? "direct" : "xray-override";
@@ -45,7 +47,7 @@ public static class TunConfigBuilder
         }
         if (processes.Any(rule => rule.Action == ProcessRouteAction.Proxy))
             ((JsonArray)config["outbounds"]!).Add(new JsonObject { ["type"] = "socks", ["tag"] = "xray-override", ["server"] = "127.0.0.1", ["server_port"] = 10810, ["version"] = "5" });
-        config["route"]!["final"] = defaultRouteDirect ? "direct" : "xray";
+        config["route"]!["final"] = "xray";
         if (useDnsOverHttps)
         {
             var uri = DnsEndpoint.Parse(dnsOverHttpsUrl);
@@ -64,7 +66,7 @@ public static class TunConfigBuilder
             }
             config["dns"]!["servers"] = servers;
         }
-        if (defaultRouteDirect || processes.Any(rule => rule.Action == ProcessRouteAction.Direct))
+        if (processes.Any(rule => rule.Action == ProcessRouteAction.Direct))
         {
             JsonArray servers = (JsonArray)config["dns"]!["servers"]!;
             JsonObject directDns = (JsonObject)servers[0]!.DeepClone(); directDns["tag"] = "direct-dns"; directDns.Remove("detour");
@@ -74,9 +76,18 @@ public static class TunConfigBuilder
                 servers.Add(new JsonObject { ["type"] = "udp", ["tag"] = "direct-bootstrap", ["server"] = "1.1.1.1" });
             }
             servers.Add(directDns);
-            if (defaultRouteDirect) { config["dns"]!["final"] = "direct-dns"; config["route"]!["default_domain_resolver"] = "direct-dns"; }
         }
         return config.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+    }
+    private static string WindowsProcessPattern(string value, bool isPath)
+    {
+        var escaped = new System.Text.StringBuilder(isPath ? "(?i)^" : @"(?i)(?:^|[\\/])");
+        foreach (char character in value)
+        {
+            if ("\\.+*?()|[]{}^$".Contains(character)) escaped.Append('\\');
+            escaped.Append(character);
+        }
+        return escaped.Append('$').ToString();
     }
     private const string Template = """
     {

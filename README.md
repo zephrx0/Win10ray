@@ -13,9 +13,9 @@
 
 ## Возможности
 
-- VLESS, VMess, Trojan, Shadowsocks. Подписки с автообновлением, QR-коды и флаги серверов.
+- VLESS, VMess, Trojan, Shadowsocks. Подписки, QR-коды и флаги серверов. Узлы с одинаковым названием в одной подписке объединяются.
 - OpenVPN в экспериментальной версии: импорт `.ovpn`, UDP/TCP, сертификаты и логин/пароль.
-- Системный прокси и TUN, правила для приложений, блокировка рекламы и трекеров, DNS over HTTPS.
+- Системный прокси и TUN, обход VPN для выбранных приложений, блокировка рекламы и трекеров, DNS over HTTPS.
 - Трей, автоподключение, переключение недоступных серверов, тёмная и светлая темы, русский и английский интерфейс.
 
 ## Скачать
@@ -50,9 +50,9 @@ dotnet publish -c Release -p:PublishProfile=Windows
 
 A native Xray client with a Windows 10 style interface. Built with C# and WPF.
 
-- VLESS, VMess, Trojan and Shadowsocks; automatic subscription refresh, QR codes and server flags.
+- VLESS, VMess, Trojan and Shadowsocks; subscriptions, QR codes and server flags. Nodes with the same name within a subscription are grouped.
 - Experimental OpenVPN support: `.ovpn` import, UDP/TCP, certificates and username/password authentication.
-- System proxy and TUN, application routing, ad and tracker blocking, DNS over HTTPS.
+- System proxy and TUN, VPN bypass for selected apps, ad and tracker blocking, DNS over HTTPS.
 - Tray, automatic connection and server failover, light/dark themes, English/Russian interface.
 
 ### Download

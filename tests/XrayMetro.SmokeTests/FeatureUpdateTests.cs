@@ -81,8 +81,8 @@ internal static class FeatureUpdateTests
                 string configuration = TunConfigBuilder.Build(useDnsOverHttps:direct, dnsOverHttpsUrl:"https://dns.google/dns-query",blockAds:ads,processRules:processes,defaultRouteDirect:direct);
                 using JsonDocument tun = JsonDocument.Parse(configuration);
                 JsonElement route = tun.RootElement.GetProperty("route");
-                Check(route.GetProperty("rules")[3].GetProperty("outbound").GetString() == "xray-override" && route.GetProperty("rules")[4].GetProperty("process_path")[0].GetString() == processes[1].Value && route.GetProperty("rules")[5].GetProperty("action").GetString() == "reject", "process routing precedes blocking and default route");
-                Check(route.GetProperty("final").GetString() == (direct ? "direct" : "xray"), "default split tunneling mode applied");
+                Check(route.GetProperty("rules")[3].GetProperty("outbound").GetString() == "xray-override" && System.Text.RegularExpressions.Regex.IsMatch(processes[1].Value.ToUpperInvariant(), route.GetProperty("rules")[4].GetProperty("process_path_regex")[0].GetString()!) && route.GetProperty("rules")[5].GetProperty("action").GetString() == "reject", "case-insensitive Windows process routing precedes blocking and default route");
+                Check(route.GetProperty("final").GetString() == "xray", "unlisted applications always use Xray, including legacy all-direct settings");
                 if(direct) Check(tun.RootElement.GetProperty("dns").GetProperty("servers").EnumerateArray().Single(server=>server.GetProperty("tag").GetString()=="direct-dns").GetProperty("type").GetString()=="https","direct routing preserves DNS over HTTPS");
                 int index = Array.IndexOf(args, "--sing-box");
                 if(index >= 0) { await ValidateCoreAsync(args[index+1], configuration, directory, false); passed++; }
