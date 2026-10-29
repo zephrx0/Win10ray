@@ -257,6 +257,18 @@ internal static class UiSmokeTests
                     if(!vm.ServerChoices.Contains(lteTwo) || vm.ServerChoices.Contains(lteOne) || lteTwo.EndpointCount!=2) throw new InvalidOperationException("Grouped endpoint selection was lost.");
                     checks += 3;
                     vm.Servers.Clear(); vm.SelectedServer = null; vm.SelectedPage = 0;
+                    string jsonPath=Path.Combine(directory,"ui-profile.json");
+                    await File.WriteAllTextAsync(jsonPath,"{\"remarks\":\"LTE JSON\",\"outbounds\":[{\"protocol\":\"freedom\",\"tag\":\"direct\"}]}");
+                    vm.ImportJsonFileCommand.Execute(new[]{jsonPath});
+                    for(int i=0;i<50&&!vm.Servers.Any(server=>server.Protocol=="xray-json");i++)await Task.Delay(50);
+                    var jsonProfile=vm.Servers.Single(server=>server.Protocol=="xray-json");
+                    vm.SelectedPage=1;vm.SelectedServer=jsonProfile;await Task.Delay(100);window.UpdateLayout();
+                    Grid jsonTile=Descendants<Grid>(window).First(grid=>grid.ContextMenu is not null&&ReferenceEquals(grid.DataContext,jsonProfile));
+                    jsonTile.ContextMenu.PlacementTarget=jsonTile;jsonTile.ContextMenu.IsOpen=true;window.UpdateLayout();
+                    MenuItem jsonExport=jsonTile.ContextMenu.Items.OfType<MenuItem>().Single(item=>item.Header?.ToString()==LocalizationService.Get("ExportJson"));
+                    if(jsonExport.Visibility!=Visibility.Visible||jsonExport.Command!=vm.ExportJsonCommand||jsonProfile.ProtocolLabel!="JSON")throw new Exception("JSON import/context menu binding failed");
+                    jsonTile.ContextMenu.IsOpen=false;checks+=3;
+                    vm.Servers.Clear();vm.SelectedServer=null;vm.SelectedPage=0;
                     if (vm.ToggleConnectionCommand.CanExecute(null)) throw new InvalidOperationException("Connecting without a server was allowed.");
                     await Task.Delay(240);
                     listener.Flush();

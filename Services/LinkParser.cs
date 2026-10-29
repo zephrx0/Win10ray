@@ -75,6 +75,7 @@ public sealed class LinkParser
             try { return new([OpenVpnProfileParser.Parse(text)], []); }
             catch (ShareLinkException exception) { return new([], [exception.Message]); }
         }
+        if (XrayJsonProfileService.LooksLike(text)) return XrayJsonProfileService.ParseMany(text);
         if (!text.Contains("://", StringComparison.Ordinal))
         {
             try { text = DecodeBase64(text); }
@@ -88,6 +89,7 @@ public sealed class LinkParser
             try { return new([OpenVpnProfileParser.Parse(text)], []); }
             catch (ShareLinkException exception) { return new([], [exception.Message]); }
         }
+        if (XrayJsonProfileService.LooksLike(text)) return XrayJsonProfileService.ParseMany(text);
         HashSet<string> seen = new(StringComparer.Ordinal);
         // Also accept links separated by spaces, while retaining spaces in a final display name.
         string[] lines = Regex.Split(text, @"\r?\n|\r|\s+(?=(?:vless|vmess|trojan|ss|openvpn|ovpn)://)", RegexOptions.IgnoreCase);
@@ -233,6 +235,7 @@ public sealed class LinkParser
             if (profile.Host != options.Remotes[0].Host || profile.Port != options.Remotes[0].Port) throw Invalid(LocalizationService.Get("OpenVpnInvalid"));
             return;
         }
+        if (profile.Protocol == "xray-json") { XrayJsonProfileService.Read(profile.XrayJson); return; }
         if (string.IsNullOrWhiteSpace(profile.Host) || Uri.CheckHostName(profile.Host) == UriHostNameType.Unknown)
             throw Invalid(LocalizationService.Pick("Не указан корректный адрес сервера.", "A valid server address is required."));
         if (profile.Port is < 1 or > 65535) throw Invalid(LocalizationService.Pick("Порт должен быть от 1 до 65535.", "Port must be between 1 and 65535."));
@@ -279,6 +282,7 @@ public sealed class LinkParser
             JsonObject endpoint = OpenVpnConfigBuilder.Endpoint(profile, options.Username, options.Password);
             return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes("openvpn\n" + Canonical(endpoint)!.ToJsonString())));
         }
+        if (profile.Protocol == "xray-json") return XrayJsonProfileService.SourceKey(profile.XrayJson);
         string canonical = JsonSerializer.Serialize(new
         {
             profile.Protocol, profile.Host, profile.Port, profile.Credential, profile.Encryption,

@@ -14,6 +14,7 @@
 ## Возможности
 
 - VLESS, VMess, Trojan, Shadowsocks. Подписки, QR-коды и флаги серверов. Узлы с одинаковым названием в одной подписке объединяются.
+- [JSON-профили Xray](docs/JSON.md): серверы и балансировщики провайдера сохраняются одной записью.
 - OpenVPN в экспериментальной версии: импорт `.ovpn`, UDP/TCP, сертификаты и логин/пароль.
 - Системный прокси и TUN, обход VPN для выбранных приложений, блокировка рекламы и трекеров, DNS over HTTPS.
 - Трей, автоподключение, переключение недоступных серверов, тёмная и светлая темы, русский и английский интерфейс.
@@ -51,6 +52,7 @@ dotnet publish -c Release -p:PublishProfile=Windows
 A native Xray client with a Windows 10 style interface. Built with C# and WPF.
 
 - VLESS, VMess, Trojan and Shadowsocks; subscriptions, QR codes and server flags. Nodes with the same name within a subscription are grouped.
+- [Xray JSON profiles](docs/JSON.md) retain provider servers and balancers in one entry.
 - Experimental OpenVPN support: `.ovpn` import, UDP/TCP, certificates and username/password authentication.
 - System proxy and TUN, VPN bypass for selected apps, ad and tracker blocking, DNS over HTTPS.
 - Tray, automatic connection and server failover, light/dark themes, English/Russian interface.

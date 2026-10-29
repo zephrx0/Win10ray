@@ -7,7 +7,7 @@ namespace XrayMetro.Services;
 
 public static class ServerGroupingService
 {
-    public static string Key(ServerProfile server) => server.SubscriptionId is Guid subscription
+    public static string Key(ServerProfile server) => server.Protocol != "xray-json" && server.SubscriptionId is Guid subscription
         ? subscription.ToString("N") + ":" + (server.ProviderName.Length > 0 ? server.ProviderName : server.Name).Trim().Normalize().ToUpperInvariant()
         : server.Id.ToString("N");
 

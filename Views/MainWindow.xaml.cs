@@ -16,6 +16,20 @@ namespace XrayMetro.Views;
 
 public partial class MainWindow : Window
 {
+    private static string[] JsonFiles(DragEventArgs e) => e.Data.GetDataPresent(DataFormats.FileDrop) && e.Data.GetData(DataFormats.FileDrop) is string[] files
+        ? Array.FindAll(files, file => System.IO.Path.GetExtension(file).Equals(".json", StringComparison.OrdinalIgnoreCase)) : [];
+    private void JsonProfileDragOver(object sender, DragEventArgs e)
+    {
+        if (JsonFiles(e).Length == 0) return;
+        e.Effects = _viewModel.CanEditConnection ? DragDropEffects.Copy : DragDropEffects.None; e.Handled = true;
+    }
+    private void JsonProfileDrop(object sender, DragEventArgs e)
+    {
+        string[] files = JsonFiles(e);
+        if (files.Length == 0) return;
+        if (_viewModel.ImportJsonFileCommand.CanExecute(files)) _viewModel.ImportJsonFileCommand.Execute(files);
+        e.Handled = true;
+    }
     private readonly MainViewModel _viewModel;
     public event Action? ExitRequested;
     public bool AllowClose { get; set; }
@@ -25,6 +39,9 @@ public partial class MainWindow : Window
     {
         _viewModel = viewModel;
         InitializeComponent();
+        AllowDrop = true;
+        AddHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(JsonProfileDragOver), true);
+        AddHandler(DragDrop.PreviewDropEvent, new DragEventHandler(JsonProfileDrop), true);
         DataContext = viewModel;
         Icon = (System.Windows.Media.ImageSource)FindResource("BrandMark");
         viewModel.PropertyChanged += OnViewModelChanged;

@@ -14,7 +14,7 @@ public sealed class XrayConfigBuilder
     public const int HttpPort = 10809;
     public const int DefaultApiPort = 10085;
 
-    public string Build(ServerProfile server, AppSettings settings, int apiPort = DefaultApiPort, int socksPort = SocksPort, int httpPort = HttpPort, string? resolvedServerAddress = null, int? openVpnBridgePort = null)
+    public string Build(ServerProfile server, AppSettings settings, int apiPort = DefaultApiPort, int socksPort = SocksPort, int httpPort = HttpPort, string? resolvedServerAddress = null, int? openVpnBridgePort = null, IReadOnlyDictionary<string,string>? jsonAddresses = null)
     {
         LinkParser.Validate(server);
         if (server.Protocol == "openvpn" && (openVpnBridgePort is null or < 1 or > 65535)) throw new ArgumentException("OpenVPN bridge port required.", nameof(openVpnBridgePort));
@@ -50,7 +50,7 @@ public sealed class XrayConfigBuilder
             },
             ["outbounds"] = new JsonArray
             {
-                new JsonObject { ["tag"] = "proxy", ["protocol"] = server.Protocol, ["settings"] = ProtocolSettings(server, resolvedServerAddress ?? server.Host), ["streamSettings"] = StreamSettings(server, resolvedServerAddress is not null) },
+                server.Protocol == "xray-json" ? new JsonObject { ["tag"] = "proxy", ["protocol"] = "freedom" } : new JsonObject { ["tag"] = "proxy", ["protocol"] = server.Protocol, ["settings"] = ProtocolSettings(server, resolvedServerAddress ?? server.Host), ["streamSettings"] = StreamSettings(server, resolvedServerAddress is not null) },
                 new JsonObject { ["tag"] = "direct", ["protocol"] = "freedom", ["settings"] = new JsonObject() },
                 new JsonObject { ["tag"] = "block", ["protocol"] = "blackhole", ["settings"] = new JsonObject() }
             },
@@ -64,6 +64,7 @@ public sealed class XrayConfigBuilder
         }
         if (server.Protocol == "openvpn")
             config["outbounds"]![0] = new JsonObject { ["tag"] = "proxy", ["protocol"] = "socks", ["settings"] = new JsonObject { ["servers"] = new JsonArray(new JsonObject { ["address"] = "127.0.0.1", ["port"] = openVpnBridgePort!.Value }) } };
+        if (server.Protocol == "xray-json") XrayJsonProfileService.Apply(config,server,settings,jsonAddresses);
         return config.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
     }
 

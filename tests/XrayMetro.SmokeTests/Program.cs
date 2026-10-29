@@ -7,6 +7,7 @@ using XrayMetro.Models;
 using XrayMetro.Services;
 
 if (args.Length > 0 && args[0] == "--core-child") { await CrashCleanupTests.RunCoreChildAsync(args); return; }
+if (args.Length > 0 && args[0] == "--json-only") { Console.WriteLine("PASS: " + await JsonProfileTests.RunAsync(args) + " JSON checks."); return; }
 if (args.Length > 0 && args[0] == "--routing-only") { Console.WriteLine("PASS: " + await RoutingAndGroupingTests.RunAsync(args) + " routing/grouping checks."); return; }
 if (args.Length == 2 && args[0] == "--openvpn-only") { Console.WriteLine("PASS: " + await OpenVpnTests.RunAsync(args[1]) + " OpenVPN checks."); return; }
 int cultureArgument = Array.IndexOf(args, "--culture");
@@ -158,6 +159,7 @@ if (xrayArgument >= 0 && xrayArgument + 1 < args.Length)
 }
 passed += await ServicesSupportTests.RunAsync();
 passed += await FeatureUpdateTests.RunAsync(args);
+passed += await JsonProfileTests.RunAsync(args);
 passed += await RoutingAndGroupingTests.RunAsync(args);
 passed += await FailoverTests.RunAsync();
 passed += await UpdateTests.RunAsync();

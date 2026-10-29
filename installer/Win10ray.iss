@@ -63,6 +63,7 @@ Source: "{#PayloadDirectory}\updater.exe"; DestDir: "{app}"; Flags: ignoreversio
 Source: "{#PayloadDirectory}\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\docs\BUILD.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\docs\OPENVPN.md"; DestDir: "{app}\docs"; Flags: ignoreversion
+Source: "{#PayloadDirectory}\docs\JSON.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\docs\licenses\QRCoder.txt"; DestDir: "{app}\docs\licenses"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\Assets\Routing\LICENSE"; DestDir: "{app}\Assets\Routing"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\xray\xray.exe"; DestDir: "{app}\xray"; Flags: ignoreversion
