@@ -117,15 +117,16 @@ internal static class FeatureUpdateTests
         var subscription=new SubscriptionProfile{Url=$"http://127.0.0.1:{port}/synthetic"};
         Task first=service.UpdateAsync(subscription,timeout.Token,false,false);
         Task second=service.UpdateAsync(subscription,timeout.Token,false,false);
-        using(var socket=await listener.AcceptTcpClientAsync(timeout.Token))
+        for(int request=0;request<4;request++)
         {
-            byte[] buffer=new byte[4096];await socket.GetStream().ReadAsync(buffer,timeout.Token);
+            using var socket=await listener.AcceptTcpClientAsync(timeout.Token);
+            byte[] buffer=new byte[4096];int read=await socket.GetStream().ReadAsync(buffer,timeout.Token);
+            string path=request%2==0?"/synthetic":"/synthetic/json";
+            if(!Encoding.ASCII.GetString(buffer,0,read).StartsWith("GET "+path+" HTTP/1.1",StringComparison.Ordinal))throw new InvalidOperationException("Subscription format requests were interleaved across updates.");
             await Task.Delay(100,timeout.Token);
             if(listener.Pending())throw new InvalidOperationException("Parallel update of one subscription was allowed.");
             await Respond(socket);
         }
-        using(var socket=await listener.AcceptTcpClientAsync(timeout.Token))
-        {byte[] buffer=new byte[4096];await socket.GetStream().ReadAsync(buffer,timeout.Token);await Respond(socket);}
         await Task.WhenAll(first,second);
         async Task Respond(System.Net.Sockets.TcpClient socket)
         {

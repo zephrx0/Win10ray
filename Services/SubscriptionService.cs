@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -34,7 +35,7 @@ public sealed class SubscriptionService : IDisposable
     {
         SemaphoreSlim gate = _locks.GetOrAdd(subscription.Id, _ => new SemaphoreSlim(1, 1));
         await gate.WaitAsync(token).ConfigureAwait(false);
-        try { return await FetchAsync(subscription.Url, token, sendHwid, throughConnection).ConfigureAwait(false); }
+        try { return await FetchAsync(subscription.Url, token, sendHwid, throughConnection, subscription.PreferJson).ConfigureAwait(false); }
         finally { gate.Release(); }
     }
 
@@ -44,7 +45,39 @@ public sealed class SubscriptionService : IDisposable
 
     public static TimeSpan RetryDelay(int failures) => TimeSpan.FromMinutes(Math.Min(720, 15 * Math.Pow(2, Math.Clamp(failures - 1, 0, 6))));
 
-    public async Task<ImportResult> FetchAsync(string url, CancellationToken cancellationToken = default, bool sendHwid = true, bool throughConnection = false)
+    public async Task<ImportResult> FetchAsync(string url, CancellationToken cancellationToken = default, bool sendHwid = true, bool throughConnection = false, bool preferJson = true)
+    {
+        ImportResult original = await FetchCoreAsync(url, cancellationToken, sendHwid, throughConnection).ConfigureAwait(false);
+        // Accept alone does not select JSON on panels that dispatch by User-Agent.
+        // Keep our own identity and try the documented JSON route without changing the stored URL.
+        if (!preferJson || original.Profiles.Count == 0 || original.Profiles.Any(profile => profile.Protocol is not ("vless" or "vmess" or "trojan" or "shadowsocks")) || !TryJsonVariant(url, out string variant)) return original;
+        using CancellationTokenSource probe = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        probe.CancelAfter(TimeSpan.FromSeconds(5));
+        try
+        {
+            ImportResult json = await FetchCoreAsync(variant, probe.Token, sendHwid, throughConnection).ConfigureAwait(false);
+            if (json.Profiles.Count > 0 && json.Errors.Count == 0 && json.Profiles.All(profile => profile.Protocol == "xray-json")) return json;
+        }
+        catch (Exception exception) when (!cancellationToken.IsCancellationRequested && exception is (InvalidOperationException or OperationCanceledException))
+        {
+            // Unsupported routes, incompatible JSON and timeouts retain the working response.
+        }
+        cancellationToken.ThrowIfCancellationRequested();
+        return original;
+    }
+
+    private static bool TryJsonVariant(string url, out string variant)
+    {
+        Uri uri = new(url.Trim(), UriKind.Absolute);
+        string last = uri.Segments.LastOrDefault()?.Trim('/').ToLowerInvariant() ?? "";
+        variant = "";
+        if (last.Length == 0 || last.Contains('.') || last is "json" or "v2ray-json" or "clash" or "singbox" or "mihomo" or "stash" ||
+            uri.Query.TrimStart('?').Split('&').Any(parameter => parameter.Split('=')[0].ToLowerInvariant() is "type" or "format" or "target")) return false;
+        variant = new UriBuilder(uri) { Path = uri.AbsolutePath.TrimEnd('/') + "/json", Fragment = "" }.Uri.AbsoluteUri;
+        return true;
+    }
+
+    private async Task<ImportResult> FetchCoreAsync(string url, CancellationToken cancellationToken, bool sendHwid, bool throughConnection)
     {
         if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out Uri? uri) || !IsHttp(uri) || !string.IsNullOrEmpty(uri.UserInfo))
             throw new InvalidOperationException(LocalizationService.Pick("Введите корректный URL подписки с http:// или https://.", "Enter a valid HTTP or HTTPS subscription URL."));

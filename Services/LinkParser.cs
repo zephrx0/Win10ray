@@ -63,7 +63,7 @@ public sealed class LinkParser
         if (XrayJsonProfileService.LooksLike(text)) return XrayJsonProfileService.ParseMany(text);
         if (!text.Contains("://", StringComparison.Ordinal))
         {
-            try { text = DecodeBase64(text); }
+            try { text = DecodeBase64(text).Trim().Trim('\uFEFF'); }
             catch (Exception exception) when (exception is FormatException or DecoderFallbackException)
             {
                 return new(profiles, [LocalizationService.Pick("Ожидается список ссылок или его представление Base64.", "Expected a plain or Base64 encoded link list.")]);

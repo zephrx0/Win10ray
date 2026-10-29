@@ -89,6 +89,7 @@ public sealed partial class MainViewModel : ObservableObject
         AddSubscriptionCommand = new(_ => AddSubscriptionAsync(), ReportError, _ => CanEditConnection);
         UpdateSubscriptionsCommand = new(_ => RefreshSubscriptionsAsync(null, false), ReportError, _ => !IsRefreshingSubscriptions && !IsBusy && !_closing && Subscriptions.Count > 0);
         UpdateSubscriptionCommand = new(p => RefreshSubscriptionsAsync(p as SubscriptionProfile, false), ReportError, p => p is SubscriptionProfile s && !s.IsUpdating && !IsRefreshingSubscriptions && !IsBusy && !_closing);
+        ChangeSubscriptionFormatCommand = new(p => ChangeSubscriptionFormatAsync(p as SubscriptionProfile), ReportError, p => p is SubscriptionProfile && !IsRefreshingSubscriptions && !IsBusy && !_closing);
         DeleteSubscriptionCommand = new(_ => DeleteSubscriptionAsync(), ReportError, _ => CanEditConnection && SelectedSubscription is not null);
         CopyLogsCommand = new(_ => { try { Clipboard.SetText(Logs); Message = LocalizationService.Pick("Логи скопированы", "Copied"); } catch { Message = LocalizationService.Pick("Буфер обмена занят. Повторите копирование.", "Clipboard is busy. Try again."); } });
         ClearLogsCommand = new(parameter => { _logLines.Clear(); while (_pendingLogs.TryDequeue(out _)) { } Logs = ""; });
@@ -333,6 +334,7 @@ public sealed partial class MainViewModel : ObservableObject
         ImportJsonFileCommand?.Notify();
         DeleteServerCommand?.Notify(); RenameServerCommand?.Notify(); AddSubscriptionCommand?.Notify();
         UpdateSubscriptionsCommand?.Notify(); UpdateSubscriptionCommand?.Notify(); DeleteSubscriptionCommand?.Notify();
+        ChangeSubscriptionFormatCommand?.Notify();
         StartRenameCommand?.Notify();
     }
     private async Task ChangeAutoStartAsync(bool enabled, int version)

@@ -15,6 +15,14 @@ public sealed partial class MainViewModel
     private Task? _subscriptionTask;
     private bool _isRefreshingSubscriptions;
     public AsyncCommand UpdateSubscriptionCommand { get; }
+    public AsyncCommand ChangeSubscriptionFormatCommand { get; }
+
+    private async Task ChangeSubscriptionFormatAsync(SubscriptionProfile? subscription)
+    {
+        if (subscription is null || !Subscriptions.Contains(subscription)) return;
+        await SaveAsync();
+        await RefreshSubscriptionsAsync(subscription, false);
+    }
     public bool IsRefreshingSubscriptions { get => _isRefreshingSubscriptions; private set { if (Set(ref _isRefreshingSubscriptions, value)) NotifyCommands(); } }
     public bool AutoUpdateSubscriptions { get => _state.Settings.AutoUpdateSubscriptions; set { _state.Settings.AutoUpdateSubscriptions = value; OnPropertyChanged(); Persist(); } }
     public int[] SubscriptionIntervals { get; } = [1, 3, 6, 12, 24];

@@ -76,9 +76,9 @@ internal static class ServicesSupportTests
         var captured = new List<string>();
         await ServeAsync(_ => Response(link), async url =>
         {
-            await subscriptions.FetchAsync(url);
-            await subscriptions.FetchAsync(url, sendHwid: false);
-            await subscriptions.FetchAsync(url);
+            await subscriptions.FetchAsync(url, preferJson: false);
+            await subscriptions.FetchAsync(url, sendHwid: false, preferJson: false);
+            await subscriptions.FetchAsync(url, preferJson: false);
         }, 3, captured.Add);
         Check(captured[0].Contains("x-hwid: " + hwid, StringComparison.OrdinalIgnoreCase) && captured[2].Contains("x-hwid: " + hwid, StringComparison.OrdinalIgnoreCase), "HWID present by default and stable between refreshes");
         Check(!captured[1].Contains("x-hwid:", StringComparison.OrdinalIgnoreCase) && !captured[1].Contains("x-device-", StringComparison.OrdinalIgnoreCase), "disabled HWID leaves no per-device headers");
@@ -90,41 +90,41 @@ internal static class ServicesSupportTests
         Check(userAgent.Split('/')[0] == "Win10ray", "Remnawave application-name extraction resolves Win10ray");
         int redirectCount = 0; captured.Clear();
         await ServeAsync(_ => ++redirectCount == 1 ? "HTTP/1.1 302 Found\r\nLocation: /next\r\nContent-Length: 0\r\nConnection: close\r\n\r\n" : Response(link),
-            async url => { await subscriptions.FetchAsync(url); }, 2, captured.Add);
+            async url => { await subscriptions.FetchAsync(url, preferJson: false); }, 2, captured.Add);
         Check(captured.Count == 2 && captured.All(headers => headers.Contains("x-hwid: " + hwid, StringComparison.OrdinalIgnoreCase) && headers.Contains("x-app-name: Win10ray\r\n", StringComparison.OrdinalIgnoreCase)), "same-origin redirect preserves HWID and application name");
         string redirectedHeaders = "";
         await ServeAsync(_ => Response(link), target => ServeAsync(_ => $"HTTP/1.1 302 Found\r\nLocation: {target}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
-            async source => { await subscriptions.FetchAsync(source); }), inspectRequest: headers => redirectedHeaders = headers);
+            async source => { await subscriptions.FetchAsync(source, preferJson: false); }), inspectRequest: headers => redirectedHeaders = headers);
         Check(!redirectedHeaders.Contains("x-hwid:", StringComparison.OrdinalIgnoreCase), "cross-origin redirect does not disclose HWID");
         Check(!redirectedHeaders.Contains("x-app-name:", StringComparison.OrdinalIgnoreCase) && !redirectedHeaders.Contains("x-device-model:", StringComparison.OrdinalIgnoreCase), "cross-origin redirect omits HWID metadata");
         await ServeAsync(_ => "HTTP/1.1 200 OK\r\nx-hwid-max-devices-reached: true\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", async url =>
         {
-            try { await subscriptions.FetchAsync(url); throw new Exception("Device limit ignored"); }
+            try { await subscriptions.FetchAsync(url, preferJson: false); throw new Exception("Device limit ignored"); }
             catch (InvalidOperationException exception) { Check(exception.Message == LocalizationService.Get("HwidLimit"), "subscription device limit has a clear error"); }
         });
         await ServeAsync(_ => Response(link), async url =>
         {
-            ImportResult result = await subscriptions.FetchAsync(url);
+            ImportResult result = await subscriptions.FetchAsync(url, preferJson: false);
             Check(result.Profiles.Count == 1 && result.Profiles[0].Name == "Synthetic", "HTTP plain-text subscription");
         });
         await ServeAsync(_ => Response(Convert.ToBase64String(Encoding.UTF8.GetBytes(link))), async url =>
         {
-            ImportResult result = await subscriptions.FetchAsync(url);
+            ImportResult result = await subscriptions.FetchAsync(url, preferJson: false);
             Check(result.Profiles.Count == 1 && result.Errors.Count == 0, "HTTP base64 subscription");
         });
         await ServeAsync(_ => "HTTP/1.1 200 OK\r\nContent-Length: 5000000\r\nConnection: close\r\n\r\n", async url =>
         {
-            try { await subscriptions.FetchAsync(url); throw new Exception("Oversized subscription accepted"); }
+            try { await subscriptions.FetchAsync(url, preferJson: false); throw new Exception("Oversized subscription accepted"); }
             catch (InvalidOperationException exception) { Check(!exception.Message.Contains(url), "oversized subscription rejected without URL disclosure"); }
         });
         await ServeAsync(_ => "HTTP/1.1 302 Found\r\nLocation: /loop\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", async url =>
         {
-            try { await subscriptions.FetchAsync(url); throw new Exception("Infinite redirects accepted"); }
+            try { await subscriptions.FetchAsync(url, preferJson: false); throw new Exception("Infinite redirects accepted"); }
             catch (InvalidOperationException exception) { Check(!exception.Message.Contains(url), "redirect loop bounded without URL disclosure"); }
         }, 6);
         foreach (string invalid in new[] { "file:///C:/secret", "https://user:SYNTHETIC_PASSWORD@example.com/" })
         {
-            try { await subscriptions.FetchAsync(invalid); throw new Exception("Invalid subscription URL accepted"); }
+            try { await subscriptions.FetchAsync(invalid, preferJson: false); throw new Exception("Invalid subscription URL accepted"); }
             catch (InvalidOperationException exception)
             {
                 Check(!exception.Message.Contains("SYNTHETIC_PASSWORD") && !exception.Message.Contains(invalid), "invalid subscription scheme or userinfo rejected");

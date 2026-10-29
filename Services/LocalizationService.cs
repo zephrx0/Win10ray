@@ -14,6 +14,7 @@ public static class LocalizationService
     {
         ["ImportJsonFile"] = ("Файл JSON", "JSON file"),
         ["ExportJson"] = ("Сохранить JSON", "Save JSON"),
+        ["PreferJson"] = ("Предпочитать JSON Xray", "Prefer Xray JSON"),
         ["JsonFileLimit"] = ("За раз можно импортировать до 16 файлов JSON.", "You can import up to 16 JSON files at once."),
         ["JsonExportWarning"] = ("JSON содержит ключи доступа. Сохранить незашифрованную копию?", "JSON contains access credentials. Save an unencrypted copy?"),
         ["Refreshing"] = ("Обновление...", "Refreshing..."),
