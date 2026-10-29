@@ -23,12 +23,17 @@ internal static class TunTests
             TunRequest restored = await TunProtocol.ReadAsync<TunRequest>(memory, CancellationToken.None);
             Check(restored.Command == "heartbeat" && restored.Token == "synthetic-session", "IPC frame round-trip");
         }
-        Check(JsonSerializer.Deserialize<TunResponse>("{\"Ok\":true}")!.ProtocolVersion == 0 && TunProtocol.CurrentVersion == 8, "legacy service detected for one-time upgrade");
+        Check(JsonSerializer.Deserialize<TunResponse>("{\"Ok\":true}")!.ProtocolVersion == 0 && TunProtocol.CurrentVersion == 9, "legacy service detected for one-time upgrade");
         Check(Path.GetDirectoryName(TunServicePaths.InstallDirectory) == Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "privileged service is independent of the application install folder");
         string legacyImage = Path.Combine(TunServicePaths.LegacyDirectory, "Win10ray.TunService.exe");
         Check(TunServicePaths.IsAllowedImage(legacyImage, true) && !TunServicePaths.IsAllowedImage(legacyImage, false), "legacy helper can only receive a public version probe, never session tokens");
         Check(!TunServicePaths.IsAllowedImage(Path.Combine(Path.GetTempPath(), "Win10ray.TunService.exe"), true), "user-writable helpers cannot impersonate the service");
         Check(TunProtocol.AdapterStartSeconds > 15 && TunProtocol.ServiceRequestSeconds > TunProtocol.AdapterStartSeconds && TunProtocol.ClientRequestSeconds > TunProtocol.ServiceRequestSeconds, "IPC cannot terminate valid Wintun startup before its PnP deadline");
+        foreach (string address in new[] { "::", "::1", "fe80::1", "ff02::1", "::ffff:192.0.2.1" })
+            Check(!TunNetworkCapabilities.IsUsableIpv6(System.Net.IPAddress.Parse(address)),"Link-local/loopback IPv6 is not internet connectivity");
+        Check(TunNetworkCapabilities.IsUsableIpv6(System.Net.IPAddress.Parse("2606:4700:4700::1111")),"A routable IPv6 address remains eligible");
+        using (JsonDocument ipv4=JsonDocument.Parse(TunConfigBuilder.Build(ipv4Only:true)))
+            Check(ipv4.RootElement.GetProperty("inbounds")[0].GetProperty("address").GetArrayLength()==1 && ipv4.RootElement.GetProperty("dns").GetProperty("rules")[0].GetProperty("rcode").GetString()=="NOERROR","IPv4-only TUN cannot advertise an unreachable virtual IPv6 network or poison A records");
         using (JsonDocument fresh = JsonDocument.Parse(TunConfigBuilder.Build(interfaceName: "Win10ray-aabbccddeeff")))
             Check(fresh.RootElement.GetProperty("inbounds")[0].GetProperty("interface_name").GetString() == "Win10ray-aabbccddeeff", "TUN session accepts a fresh PnP identity");
         Check(TunServiceClient.Failure("adapter_timeout").Message.Contains("[adapter_timeout]") && TunServiceClient.Failure("ipc_closed").Code == "ipc_closed", "TUN failure reports a specific safe code");
@@ -96,7 +101,7 @@ internal static class TunTests
             foreach (string component in TunComponentIntegrity.Hashes.Keys) await File.WriteAllTextAsync(Path.Combine(directory, component), "corrupted test component");
             try { await TunComponentIntegrity.VerifyAsync(directory); throw new InvalidOperationException("FAIL: corrupted TUN component accepted"); }
             catch (InvalidDataException) { passed++; }
-            foreach (string configuration in new[] { TunConfigBuilder.Build(), TunConfigBuilder.Build(true, DnsEndpoint.Default), TunConfigBuilder.Build(true, "https://dns.google/dns-query") })
+            foreach (string configuration in new[] { TunConfigBuilder.Build(), TunConfigBuilder.Build(true, DnsEndpoint.Default), TunConfigBuilder.Build(true, "https://dns.google/dns-query"), TunConfigBuilder.Build(true,DnsEndpoint.Default,processRules:[new("chrome.exe",XrayMetro.Models.ProcessRouteAction.Direct)],ipv4Only:true) })
             {
                 string config = Path.Combine(directory, "tun.json"); await File.WriteAllTextAsync(config, configuration);
                 using var process = new Process { StartInfo = new ProcessStartInfo(Path.GetFullPath(executable)) { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, RedirectStandardOutput = true, RedirectStandardError = true } };

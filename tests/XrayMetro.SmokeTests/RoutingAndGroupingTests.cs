@@ -36,7 +36,7 @@ internal static class RoutingAndGroupingTests
         }
         int passed = 6;
         int native = Array.IndexOf(args, "--sing-box");
-        if (native >= 0) { await NativeRoutingAsync(args[native + 1]); passed += 4; }
+        if (native >= 0) { await NativeRoutingAsync(args[native + 1]); passed += 4; passed += await NativeDnsTests.RunAsync(args[native + 1]); }
         return passed;
     }
 

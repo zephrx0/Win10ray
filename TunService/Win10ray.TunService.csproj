@@ -19,6 +19,7 @@
     <Compile Include="../Services/BlockList.cs" Link="BlockList.cs" />
     <Compile Include="../Models/ProcessRouteRule.cs" Link="ProcessRouteRule.cs" />
     <Compile Include="../Services/TunConfigBuilder.cs" Link="TunConfigBuilder.cs" />
+    <Compile Include="../Services/TunNetworkCapabilities.cs" Link="TunNetworkCapabilities.cs" />
     <Compile Include="../Services/TunProtocol.cs" Link="TunProtocol.cs" />
     <Compile Include="../Services/TunInstallDiagnostics.cs" Link="TunInstallDiagnostics.cs" />
     <Compile Include="../Services/TunServicePaths.cs" Link="TunServicePaths.cs" />

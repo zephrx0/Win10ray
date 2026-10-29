@@ -248,22 +248,29 @@ public sealed class XrayProcessService : IDisposable
         return locations.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException(LocalizationService.Pick("xray.exe не найден. Поместите ядро в папку xray рядом с Win10ray.exe.", "xray.exe was not found. Place the core in the xray folder next to Win10ray.exe."));
     }
 
-    private Task CheckPortsAsync(CancellationToken cancellationToken, bool processOverride = false) => Task.Run(() =>
+    private Task CheckPortsAsync(CancellationToken cancellationToken, bool processOverride = false) => Task.Run(async () =>
     {
         foreach (int port in new[] { SocksPort, HttpPort, ApiPort }.Concat(processOverride ? [10810] : Array.Empty<int>()))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var listener = new TcpListener(IPAddress.Loopback, port);
-            try
+            var waiting = Stopwatch.StartNew();
+            while (true)
             {
-                listener.Server.ExclusiveAddressUse = true;
-                listener.Start();
+                cancellationToken.ThrowIfCancellationRequested();
+                var listener = new TcpListener(IPAddress.Loopback, port);
+                try
+                {
+                    listener.Server.ExclusiveAddressUse = true;
+                    listener.Start();
+                    break;
+                }
+                catch (SocketException)
+                {
+                    if (waiting.Elapsed >= TimeSpan.FromSeconds(1.5))
+                        throw new InvalidOperationException(LocalizationService.Pick($"Порт {port} занят или недоступен. Закройте использующее его приложение.", $"Port {port} is in use or unavailable. Close the application using it."));
+                }
+                finally { listener.Stop(); }
+                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
             }
-            catch (SocketException)
-            {
-                throw new InvalidOperationException(LocalizationService.Pick($"Порт {port} занят или недоступен. Закройте использующее его приложение.", $"Port {port} is in use or unavailable. Close the application using it."));
-            }
-            finally { listener.Stop(); }
         }
     }, cancellationToken);
 

@@ -9,7 +9,7 @@ namespace XrayMetro.Services;
 
 public static class TunConfigBuilder
 {
-    public static string Build(bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null, string interfaceName = "Win10ray", bool blockAds = true, ProcessRouteRule[]? processRules = null, bool defaultRouteDirect = false)
+    public static string Build(bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null, string interfaceName = "Win10ray", bool blockAds = true, ProcessRouteRule[]? processRules = null, bool defaultRouteDirect = false, bool ipv4Only = false)
     {
         if (!System.Text.RegularExpressions.Regex.IsMatch(interfaceName, "^Win10ray(?:-[a-f0-9]{12})?$"))
             throw new ArgumentException("Invalid TUN interface name.", nameof(interfaceName));
@@ -76,6 +76,15 @@ public static class TunConfigBuilder
                 servers.Add(new JsonObject { ["type"] = "udp", ["tag"] = "direct-bootstrap", ["server"] = "1.1.1.1" });
             }
             servers.Add(directDns);
+            config["outbounds"]![1]!["domain_resolver"] = new JsonObject { ["server"] = "direct-dns", ["strategy"] = ipv4Only ? "ipv4_only" : "prefer_ipv4" };
+        }
+        if (ipv4Only)
+        {
+            config["inbounds"]![0]!["address"] = new JsonArray("172.29.0.1/30");
+            config["dns"]!["strategy"] = "ipv4_only";
+            // An empty successful AAAA answer preserves A lookups. NXDOMAIN would poison both.
+            // Apply this to the shared Windows DNS service as well as attributed app queries.
+            dnsRules.Insert(0,new JsonObject { ["query_type"] = new JsonArray("AAAA"), ["action"] = "predefined", ["rcode"] = "NOERROR" });
         }
         return config.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
     }

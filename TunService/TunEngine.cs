@@ -129,7 +129,9 @@ internal sealed class TunEngine : IDisposable
         string config = Path.Combine(Installer.DataDirectory, "tun.json");
         // Wintun derives its GUID from the name. Avoid a device still being removed by PnP.
         string interfaceName = "Win10ray-" + Guid.NewGuid().ToString("N")[..12];
-        await File.WriteAllTextAsync(config, TunConfigBuilder.Build(request.UseDnsOverHttps, request.DnsOverHttpsUrl, interfaceName, request.BlockAds, request.ProcessRules, request.DefaultRouteDirect), cancellationToken);
+        bool ipv4Only = request.ProcessRules?.Any(rule => rule.Action == XrayMetro.Models.ProcessRouteAction.Direct) == true && TunNetworkCapabilities.RequiresIpv4Only();
+        lock (_logs) _logs.Enqueue(ipv4Only ? "TUN DNS: IPv4 (no IPv6 gateway)." : "TUN DNS: IPv4/IPv6.");
+        await File.WriteAllTextAsync(config, TunConfigBuilder.Build(request.UseDnsOverHttps, request.DnsOverHttpsUrl, interfaceName, request.BlockAds, request.ProcessRules, request.DefaultRouteDirect, ipv4Only), cancellationToken);
         var start = new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory, "sing-box.exe"))
         {
             WorkingDirectory = AppContext.BaseDirectory, UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden,
@@ -167,7 +169,7 @@ internal sealed class TunEngine : IDisposable
                 catch (RegexMatchTimeoutException) { line = "DNS request failed."; }
                 lock (_logs)
                 {
-                    _logs.Enqueue(line.Length > 200 ? line[..200] : line);
+                    _logs.Enqueue(line.Length > 800 ? line[..800] : line);
                     while (_logs.Count > 20) _logs.Dequeue();
                 }
             }

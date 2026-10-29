@@ -70,6 +70,19 @@ internal static class CoreLifecycleTests
                 try { await client.StartAsync(clientConfig, [credential], false, timeout.Token); throw new InvalidOperationException("FAIL: occupied port was accepted"); }
                 catch (InvalidOperationException exception) when (exception.Message.Contains(socksPort.ToString(), StringComparison.Ordinal)) { }
             }
+            using (TcpListener releasing = new(IPAddress.Loopback,socksPort))
+            {
+                releasing.Start();
+                Task release=Task.Run(async()=>{await Task.Delay(200);releasing.Stop();});
+                await client.CheckEnvironmentAsync(false,timeout.Token);await release;
+            }
+            using (TcpListener occupied = new(IPAddress.Loopback,socksPort))
+            using (CancellationTokenSource cancel=new(TimeSpan.FromMilliseconds(100)))
+            {
+                occupied.Start();
+                try{await client.CheckEnvironmentAsync(false,cancel.Token);throw new Exception("A busy-port retry ignored cancellation");}
+                catch(OperationCanceledException)when(cancel.IsCancellationRequested){}
+            }
             try { await client.StartAsync("{", [credential], false, timeout.Token); throw new InvalidOperationException("FAIL: invalid config was accepted"); }
             catch (InvalidOperationException exception) when (!exception.Message.StartsWith("FAIL:", StringComparison.Ordinal)) { }
             backend.Start();
@@ -142,7 +155,7 @@ internal static class CoreLifecycleTests
             backend.Kill(true);
             await backend.WaitForExitAsync(timeout.Token);
             await Task.WhenAll(backendOutput, backendError);
-            return 17;
+            return 19;
         }
         finally
         {
