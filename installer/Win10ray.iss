@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "1.4.2"
+  #define AppVersion "1.4.3"
 #endif
 #define NumericVersion AppVersion
 #if Pos("-", AppVersion) > 0
