@@ -268,6 +268,15 @@ internal static class UiSmokeTests
                     MenuItem jsonExport=jsonTile.ContextMenu.Items.OfType<MenuItem>().Single(item=>item.Header?.ToString()==LocalizationService.Get("ExportJson"));
                     if(jsonExport.Visibility!=Visibility.Visible||jsonExport.Command!=vm.ExportJsonCommand||jsonProfile.ProtocolLabel!="JSON")throw new Exception("JSON import/context menu binding failed");
                     jsonTile.ContextMenu.IsOpen=false;checks+=3;
+                    var subscriptionFormat=new SubscriptionProfile{Name="Synthetic subscription",Url="https://example.invalid/SYNTHETIC"};
+                    vm.Subscriptions.Add(subscriptionFormat);vm.ServersTab=1;await Task.Delay(100);window.UpdateLayout();
+                    Grid subscriptionTile=Descendants<Grid>(window).First(grid=>grid.ContextMenu is not null&&ReferenceEquals(grid.DataContext,subscriptionFormat));
+                    subscriptionTile.ContextMenu.PlacementTarget=subscriptionTile;subscriptionTile.ContextMenu.IsOpen=true;window.UpdateLayout();
+                    MenuItem formatItem=subscriptionTile.ContextMenu.Items.OfType<MenuItem>().Single(item=>item.Header?.ToString()==LocalizationService.Get("PreferJson"));
+                    if(!formatItem.IsCheckable||!formatItem.IsChecked||formatItem.Command!=vm.ChangeSubscriptionFormatCommand||formatItem.CommandParameter!=subscriptionFormat)throw new Exception("Subscription JSON preference binding failed");
+                    formatItem.SetCurrentValue(MenuItem.IsCheckedProperty,false);
+                    if(subscriptionFormat.PreferJson)throw new Exception("JSON preference did not update the subscription");
+                    subscriptionTile.ContextMenu.IsOpen=false;vm.Subscriptions.Remove(subscriptionFormat);vm.ServersTab=0;checks+=2;
                     vm.Servers.Clear();vm.SelectedServer=null;vm.SelectedPage=0;
                     if (vm.ToggleConnectionCommand.CanExecute(null)) throw new InvalidOperationException("Connecting without a server was allowed.");
                     await Task.Delay(240);

@@ -6,6 +6,8 @@ public sealed class SubscriptionProfile : XrayMetro.ViewModels.ObservableObject
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = LocalizationService.Pick("Подписка", "Subscription");
     public string Url { get; set; } = "";
+    private bool _preferJson = true;
+    public bool PreferJson { get => _preferJson; set => Set(ref _preferJson, value); }
     public DateTimeOffset? LastAutoAttempt { get; set; }
     public DateTimeOffset? RetryAfter { get; set; }
     public int FailedAttempts { get; set; }

@@ -54,13 +54,15 @@ internal static class JsonProfileTests
         var emptyInbound=(JsonObject)source.DeepClone();emptyInbound["routing"]!["rules"]![0]!["inboundTag"]=new JsonArray();
         Check(XrayJsonProfileService.Read(new LinkParser().ParseMany(emptyInbound.ToJsonString()).Profiles.Single().XrayJson)["routing"]!["rules"]!.AsArray().Count==1,"An empty inbound filter must not drop provider balancing");
         await SubscriptionAsync(source.ToJsonString());passed++;
+        passed += await SubscriptionNegotiationTests.RunAsync(source);
         string root=Path.Combine(Path.GetTempPath(),"Win10ray-Json-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);
         try
         {
-            var store=new SettingsService(Path.Combine(root,"storage"));await store.SaveAsync(new AppState{Servers=[profile]});
+            var store=new SettingsService(Path.Combine(root,"storage"));await store.SaveAsync(new AppState{Servers=[profile],Subscriptions=[new SubscriptionProfile{Url="https://example.invalid/SYNTHETIC",PreferJson=false}]});
             string encrypted=await File.ReadAllTextAsync(Path.Combine(root,"storage","settings.json"));
             Check(!encrypted.Contains(Id)&&!encrypted.Contains("outbounds"),("JSON profile encrypted at rest"));
             Check((await store.LoadAsync()).Servers.Single().XrayJson==profile.XrayJson,"Encrypted JSON roundtrip");
+            Check(!(await store.LoadAsync()).Subscriptions.Single().PreferJson,"Subscription format preference encrypted roundtrip");
             int index=Array.IndexOf(args,"--xray");if(index>=0){await NativeAsync(args[index+1],root);passed+=3;}
         }
         finally{Directory.Delete(root,true);}

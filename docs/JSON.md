@@ -10,7 +10,9 @@
 
 JSON-профили требуют Win10ray 1.4.4 или новее и хранятся с Windows DPAPI. «Сохранить JSON» создаёт незашифрованный файл с ключами доступа. Большой профиль может не поместиться в QR-код.
 
-Если панель выдаёт разные форматы для разных клиентов, используйте её URL подписки Xray JSON. Win10ray запрашивает JSON через HTTP Accept и сохраняет собственное имя клиента; частные форматы других приложений не имитируются.
+Начиная с 1.4.5, после получения списка ссылок Win10ray также проверяет вариант подписки `/json`. Если панель его поддерживает, загружается JSON с балансировщиками. Иначе сохраняется исходный список. Дополнительный запрос ограничен пятью секундами; адрес подписки, HWID и имя клиента не меняются. Явно заданные форматы и файловые URL не изменяются. В контекстном меню подписки можно отключить «Предпочитать JSON Xray».
+
+Если провайдер использует другой адрес JSON или отдельные правила для приложений, потребуется его URL Xray JSON либо правило панели для Win10ray. Частные форматы других приложений не имитируются.
 
 ## English
 
@@ -22,4 +24,8 @@ Win10ray owns local listeners, statistics API and logging. Application ad blocki
 
 Supported outbounds: VLESS, VMess, Trojan, Shadowsocks, SOCKS, HTTP, Freedom, Blackhole, DNS and Loopback. External certificate/key/geodata files, Lua, webhooks and Browser Dialer are unsupported. Use inline PEM and bundled geodata.
 
-JSON profiles require Win10ray 1.4.4 or later and are stored with Windows DPAPI. Save JSON exports an unencrypted file containing access credentials; large profiles may exceed QR capacity. If your panel serves different formats to different apps, use its Xray JSON subscription URL. Win10ray requests JSON with HTTP Accept and retains its own client identity.
+JSON profiles require Win10ray 1.4.4 or later and are stored with Windows DPAPI. Save JSON exports an unencrypted file containing access credentials; large profiles may exceed QR capacity.
+
+Since 1.4.5, Win10ray also checks the `/json` subscription variant after receiving a link list. Supported JSON retains provider balancers; otherwise the original list is kept. The extra request has a five-second timeout. The stored URL, HWID and client identity remain unchanged. Explicit formats and file URLs are respected. Disable Prefer Xray JSON in the subscription context menu to keep the original response.
+
+Providers with a different JSON endpoint or application-specific rules may require their Xray JSON URL or a panel rule for Win10ray. Proprietary formats from other applications are not emulated.
