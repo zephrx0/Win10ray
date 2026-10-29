@@ -16,7 +16,7 @@ public static class LocalizationService
         ["BlockAds"] = ("Блокировать рекламу и трекеры", "Block ads and trackers"),
         ["ProcessRouting"] = ("Правила приложений", "Application rules"),
         ["ProcessRoutingHint"] = ("Работает только в TUN. Правила выше блокировки и обхода российских сайтов. Изменения применятся при следующем подключении.", "Available in TUN only. Rules override blocking and Russian site bypass. Changes apply on the next connection."),
-        ["DefaultRoute"] = ("Остальной трафик", "Other traffic"),
+        ["DefaultRoute"] = ("Режим приложений", "Application mode"),
         ["AllProxy"] = ("Выбранное - напрямую", "Selected - direct"),
         ["AllDirect"] = ("Всё напрямую", "All direct"),
         ["RunningProcesses"] = ("Выбрать из запущенных", "Choose running process"),
