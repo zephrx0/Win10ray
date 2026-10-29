@@ -19,7 +19,7 @@ dotnet run --project Win10ray.csproj
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1
 # Экспериментальная сборка:
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1 -Version 1.4.2-experimental.2
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Publish-Release.ps1 -Version 1.4.3-experimental.1
 ```
 
 Результат: `artifacts/Win10ray-<версия>` и `artifacts/Win10ray-Setup-<версия>.exe`. Self-contained win-x64, без установки .NET у пользователя. Скрипт создаёт SHA-256 рядом с установщиком; публикация на GitHub выполняется отдельно.
