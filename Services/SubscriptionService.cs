@@ -98,7 +98,9 @@ public sealed class SubscriptionService : IDisposable
                     await data.WriteAsync(buffer.AsMemory(0, read), timeout.Token).ConfigureAwait(false);
                 }
                 string text = Encoding.UTF8.GetString(data.GetBuffer(), 0, checked((int)data.Length)).TrimStart('\uFEFF');
-                return new LinkParser().ParseMany(text);
+                ImportResult result = new LinkParser().ParseMany(text);
+                if (result.Profiles.Count == 1 && result.Profiles[0].Protocol == "openvpn" && OpenVpnProfileParser.LooksLikeProfile(text)) result.Profiles[0].OpenVpnSourceUrl = origin.AbsoluteUri;
+                return result;
             }
             throw new InvalidOperationException(LocalizationService.Pick("Не удалось загрузить подписку.", "Could not load the subscription."));
         }

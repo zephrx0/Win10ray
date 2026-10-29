@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using XrayMetro.Models;
 
@@ -31,6 +32,15 @@ public sealed class LinkParser
         try
         {
             link = link.Trim().Trim('\uFEFF');
+            if (link.StartsWith("openvpn://", StringComparison.OrdinalIgnoreCase) || link.StartsWith("ovpn://", StringComparison.OrdinalIgnoreCase))
+            {
+                string data = link[(link.IndexOf("://", StringComparison.Ordinal) + 3)..];
+                int fragment = data.IndexOf('#');
+                string name = fragment >= 0 ? Uri.UnescapeDataString(data[(fragment + 1)..]) : "OpenVPN";
+                if (fragment >= 0) data = data[..fragment];
+                if (data.StartsWith("import-profile/", StringComparison.OrdinalIgnoreCase)) throw Invalid(LocalizationService.Get("OpenVpnImportUrl"));
+                return OpenVpnProfileParser.Parse(DecodeBase64(data), name);
+            }
             int schemeEnd = link.IndexOf("://", StringComparison.Ordinal);
             if (schemeEnd < 0) throw Invalid(LocalizationService.Pick("Ожидается ссылка vless://, vmess://, trojan:// или ss://.", "Expected a vless://, vmess://, trojan:// or ss:// link."));
             string scheme = link[..schemeEnd].ToLowerInvariant();
@@ -60,6 +70,11 @@ public sealed class LinkParser
         if (string.IsNullOrWhiteSpace(text)) return new(profiles, [LocalizationService.Pick("Список ссылок пуст.", "The link list is empty.")]);
         if (text.Length > MaxInputLength) return new(profiles, [LocalizationService.Pick("Список превышает ограничение 2 МБ.", "The list exceeds 2 MB.")]);
         text = text.Trim().Trim('\uFEFF');
+        if (OpenVpnProfileParser.LooksLikeProfile(text))
+        {
+            try { return new([OpenVpnProfileParser.Parse(text)], []); }
+            catch (ShareLinkException exception) { return new([], [exception.Message]); }
+        }
         if (!text.Contains("://", StringComparison.Ordinal))
         {
             try { text = DecodeBase64(text); }
@@ -68,9 +83,14 @@ public sealed class LinkParser
                 return new(profiles, [LocalizationService.Pick("Ожидается список ссылок или его представление Base64.", "Expected a plain or Base64 encoded link list.")]);
             }
         }
+        if (OpenVpnProfileParser.LooksLikeProfile(text))
+        {
+            try { return new([OpenVpnProfileParser.Parse(text)], []); }
+            catch (ShareLinkException exception) { return new([], [exception.Message]); }
+        }
         HashSet<string> seen = new(StringComparer.Ordinal);
         // Also accept links separated by spaces, while retaining spaces in a final display name.
-        string[] lines = Regex.Split(text, @"\r?\n|\r|\s+(?=(?:vless|vmess|trojan|ss)://)", RegexOptions.IgnoreCase);
+        string[] lines = Regex.Split(text, @"\r?\n|\r|\s+(?=(?:vless|vmess|trojan|ss|openvpn|ovpn)://)", RegexOptions.IgnoreCase);
         for (int index = 0; index < lines.Length; index++)
         {
             string line = lines[index].Trim();
@@ -207,6 +227,12 @@ public sealed class LinkParser
 
     public static void Validate(ServerProfile profile)
     {
+        if (profile.Protocol == "openvpn")
+        {
+            OpenVpnOptions options = OpenVpnProfileParser.Read(profile.OpenVpnConfig);
+            if (profile.Host != options.Remotes[0].Host || profile.Port != options.Remotes[0].Port) throw Invalid(LocalizationService.Get("OpenVpnInvalid"));
+            return;
+        }
         if (string.IsNullOrWhiteSpace(profile.Host) || Uri.CheckHostName(profile.Host) == UriHostNameType.Unknown)
             throw Invalid(LocalizationService.Pick("Не указан корректный адрес сервера.", "A valid server address is required."));
         if (profile.Port is < 1 or > 65535) throw Invalid(LocalizationService.Pick("Порт должен быть от 1 до 65535.", "Port must be between 1 and 65535."));
@@ -247,6 +273,12 @@ public sealed class LinkParser
 
     public static string CalculateSourceKey(ServerProfile profile)
     {
+        if (profile.Protocol == "openvpn")
+        {
+            OpenVpnOptions options = OpenVpnProfileParser.Read(profile.OpenVpnConfig);
+            JsonObject endpoint = OpenVpnConfigBuilder.Endpoint(profile, options.Username, options.Password);
+            return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes("openvpn\n" + Canonical(endpoint)!.ToJsonString())));
+        }
         string canonical = JsonSerializer.Serialize(new
         {
             profile.Protocol, profile.Host, profile.Port, profile.Credential, profile.Encryption,
@@ -257,6 +289,13 @@ public sealed class LinkParser
         });
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
     }
+
+    private static JsonNode? Canonical(JsonNode? node) => node switch
+    {
+        JsonObject value => new JsonObject(value.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => new KeyValuePair<string, JsonNode?>(pair.Key, Canonical(pair.Value)))),
+        JsonArray value => new JsonArray(value.Select(Canonical).ToArray()),
+        _ => node?.DeepClone()
+    };
 
     public static string DecodeBase64(string encoded)
     {

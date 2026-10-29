@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "1.4.2-experimental.1"
+  #define AppVersion "1.4.2-experimental.2"
 #endif
 #define NumericVersion AppVersion
 #if Pos("-", AppVersion) > 0
@@ -59,6 +59,7 @@ Source: "{#PayloadDirectory}\updater.exe"; DestDir: "{app}"; Flags: ignoreversio
 #ifndef TestBuild
 Source: "{#PayloadDirectory}\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\docs\BUILD.md"; DestDir: "{app}\docs"; Flags: ignoreversion
+Source: "{#PayloadDirectory}\docs\OPENVPN.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\docs\licenses\QRCoder.txt"; DestDir: "{app}\docs\licenses"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\Assets\Routing\LICENSE"; DestDir: "{app}\Assets\Routing"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\xray\xray.exe"; DestDir: "{app}\xray"; Flags: ignoreversion

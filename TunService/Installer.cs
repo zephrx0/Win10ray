@@ -9,7 +9,7 @@ namespace Win10ray.TunService;
 internal static class Installer
 {
     public static string InstallDirectory => TunServicePaths.InstallDirectory;
-    public static string DataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Win10ray", "TunService");
+    public static string DataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Win10ray", "TunExperimental");
     public static async Task InstallAsync(SecurityIdentifier user)
     {
         TunInstallStage stage = TunInstallStage.UserIdentity;
@@ -40,7 +40,7 @@ internal static class Installer
             await ProtectedStorage.WriteTextAsync(Path.Combine(InstallDirectory, "client.sid"), user.Value);
             string executable = $"\"{Path.Combine(InstallDirectory, "Win10ray.TunService.exe")}\" --service";
             stage = TunInstallStage.RegisterService;
-            int result = await ScAsync(existing ? "config" : "create", TunProtocol.ServiceName, "binPath=", executable, "start=", "auto", "depend=", "Tcpip/BFE", "DisplayName=", "Win10ray TUN");
+            int result = await ScAsync(existing ? "config" : "create", TunProtocol.ServiceName, "binPath=", executable, "start=", "auto", "depend=", "Tcpip/BFE", "DisplayName=", "Win10ray TUN (Experimental)");
             if (result != 0) throw new System.ComponentModel.Win32Exception(result);
             stage = TunInstallStage.ServicePermissions;
             string descriptor = $"D:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)(A;;CCLCRPLO;;;{user.Value})";

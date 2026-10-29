@@ -15,19 +15,21 @@ namespace XrayMetro.Services;
 
 public sealed class SettingsService
 {
-    public static string AppDirectory { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Win10ray");
+    public static string AppDirectory { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Win10ray", "Experimental");
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, PropertyNameCaseInsensitive = true };
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly string _directory;
     private readonly string _file;
     private readonly bool _migrateLegacy;
+    private readonly string? _importDirectory;
     public string? LoadWarning { get; private set; }
 
-    public SettingsService(string? storageDirectory = null)
+    public SettingsService(string? storageDirectory = null, string? importDirectory = null)
     {
         _directory = Path.GetFullPath(storageDirectory ?? AppDirectory);
         _file = Path.Combine(_directory, "settings.json");
-        _migrateLegacy = storageDirectory is null;
+        _migrateLegacy = storageDirectory is null || importDirectory is not null;
+        _importDirectory = importDirectory is null ? null : Path.GetFullPath(importDirectory);
     }
 
     public async Task<AppState> LoadAsync()
@@ -37,14 +39,15 @@ public sealed class SettingsService
         {
             LoadWarning = null;
             await Task.Run(PrepareDirectory).ConfigureAwait(false);
+            bool importedStable = false;
             if (_migrateLegacy && !File.Exists(_file))
             {
-                string legacy = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XrayMetro", "settings.json");
+                string legacy = Path.Combine(_importDirectory ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Win10ray"), "settings.json");
+                if (_importDirectory is null && !File.Exists(legacy)) legacy = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XrayMetro", "settings.json");
                 if (File.Exists(legacy))
                 {
-                    await using FileStream input = new(legacy, FileMode.Open, FileAccess.Read, FileShare.Read, 8192, true);
-                    await using FileStream output = new(_file, FileMode.CreateNew, FileAccess.Write, FileShare.None, 8192, true);
-                    await input.CopyToAsync(output).ConfigureAwait(false);
+                    await WriteAtomicAsync(_file, await File.ReadAllBytesAsync(legacy).ConfigureAwait(false)).ConfigureAwait(false);
+                    importedStable = true;
                 }
             }
             if (!File.Exists(_file)) return new AppState();
@@ -62,6 +65,10 @@ public sealed class SettingsService
                 state.Servers.RemoveAll(server => server is null);
                 state.Subscriptions.RemoveAll(subscription => subscription is null);
                 ValidateState(state);
+                if (importedStable)
+                {
+                    state.Settings.ExperimentalUpdates = true;
+                }
                 string backup = _file + ".bak";
                 string marker = backup + ".version";
                 if (!encrypted)
@@ -77,6 +84,12 @@ public sealed class SettingsService
                     ProfileProtection.RemoveBackup(backup); File.Delete(marker);
                 }
                 System.Security.Cryptography.CryptographicOperations.ZeroMemory(stored);
+                if (importedStable)
+                {
+                    byte[] snapshot = JsonSerializer.SerializeToUtf8Bytes(state, JsonOptions);
+                    try { await WriteAtomicAsync(_file, await Task.Run(() => ProfileProtection.Protect(snapshot)).ConfigureAwait(false)).ConfigureAwait(false); }
+                    finally { Array.Clear(snapshot); }
+                }
                 return state;
             }
             catch (JsonException)

@@ -6,7 +6,7 @@ public sealed class AppSettings
     public bool UseTun { get; set; }
     public bool SendHwid { get; set; } = true;
     public bool CheckUpdatesOnStartup { get; set; } = true;
-    public bool ExperimentalUpdates { get; set; }
+    public bool ExperimentalUpdates { get; set; } = true;
     public bool AutoSwitchServers { get; set; } = true;
     public bool BypassRussia { get; set; }
     public bool BlockAds { get; set; } = true;

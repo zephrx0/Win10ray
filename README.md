@@ -14,20 +14,23 @@
 ## Возможности
 
 - VLESS, VMess, Trojan, Shadowsocks. Подписки с автообновлением, QR-коды и флаги серверов.
+- OpenVPN в экспериментальной версии: импорт `.ovpn`, UDP/TCP, сертификаты и логин/пароль.
 - Системный прокси и TUN, правила для приложений, блокировка рекламы и трекеров, DNS over HTTPS.
 - Трей, автоподключение, переключение недоступных серверов, тёмная и светлая темы, русский и английский интерфейс.
 
 ## Скачать
 
-[Стабильная версия](https://github.com/zephrx0/Win10ray/releases/latest) · [Экспериментальная ветка](https://github.com/zephrx0/Win10ray/tree/experimental) · [Все релизы](https://github.com/zephrx0/Win10ray/releases)
+[Экспериментальная версия с OpenVPN](https://github.com/zephrx0/Win10ray/releases/tag/v1.4.2-experimental.2) · [Стабильная версия](https://github.com/zephrx0/Win10ray/releases/latest) · [Все релизы](https://github.com/zephrx0/Win10ray/releases)
 
 Запустите `Win10ray-Setup-*.exe`, импортируйте ссылку или подписку и нажмите «Подключить». Для первого включения TUN подтвердите запрос администратора.
 
 Канал обновлений выбирается в **Общие → Обновления** и в `updater.exe`. Экспериментальные версии могут содержать ошибки, устанавливаются после предупреждения. Для возврата выберите стабильный канал.
 
+Для OpenVPN: **Серверы → Файл .ovpn** или перетащите файл в окно. [Поддерживаемые профили и ограничения](docs/OPENVPN.md).
+
 ## Данные и приватность
 
-Профиль в `%AppData%\Win10ray` зашифрован Windows DPAPI и привязан к пользователю Windows. Старые данные переносятся автоматически. HWID включён по умолчанию и передаётся только серверу подписки; его можно отключить. QR-коды создаются локально и содержат секретные ссылки. [Подробности](docs/BUILD.md#данные-и-ограничения).
+Экспериментальный профиль в `%AppData%\Win10ray\Experimental` зашифрован Windows DPAPI. При первом запуске копируются настройки стабильной версии; дальше профили независимы. HWID включён по умолчанию для подписок и отключается в настройках. QR-коды создаются локально и содержат секретные ссылки. [Подробности](docs/BUILD.md#данные-и-ограничения).
 
 ## Сборка
 
@@ -48,18 +51,21 @@ dotnet publish -c Release -p:PublishProfile=Windows
 A native Xray client with a Windows 10 style interface. Built with C# and WPF.
 
 - VLESS, VMess, Trojan and Shadowsocks; automatic subscription refresh, QR codes and server flags.
+- Experimental OpenVPN support: `.ovpn` import, UDP/TCP, certificates and username/password authentication.
 - System proxy and TUN, application routing, ad and tracker blocking, DNS over HTTPS.
 - Tray, automatic connection and server failover, light/dark themes, English/Russian interface.
 
 ### Download
 
-[Stable release](https://github.com/zephrx0/Win10ray/releases/latest) · [Experimental branch](https://github.com/zephrx0/Win10ray/tree/experimental) · [All releases](https://github.com/zephrx0/Win10ray/releases)
+[Experimental OpenVPN build](https://github.com/zephrx0/Win10ray/releases/tag/v1.4.2-experimental.2) · [Stable release](https://github.com/zephrx0/Win10ray/releases/latest) · [All releases](https://github.com/zephrx0/Win10ray/releases)
 
 Run `Win10ray-Setup-*.exe`, import a link or subscription and click **Connect**. TUN requires administrator approval on first use.
 
+For OpenVPN, choose **Servers → .ovpn file** or drag the file into the window. [Supported profiles and limitations](docs/OPENVPN.md).
+
 Choose the update channel in **General → Updates** or `updater.exe`. Experimental builds may contain bugs and require confirmation. Select Stable to return to a stable release.
 
-The profile is encrypted with Windows DPAPI for the current Windows user. Legacy data migrates automatically. HWID is enabled by default for subscription requests and can be disabled. QR codes are generated locally and contain private links.
+The experimental profile uses Windows DPAPI in `%AppData%\Win10ray\Experimental`. Stable settings are copied on first launch, then kept separate. HWID is enabled by default for subscription requests and can be disabled. QR codes are generated locally and contain private links.
 
 ### Build
 

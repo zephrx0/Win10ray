@@ -30,6 +30,10 @@ public sealed class ServerProfile : ObservableObject
     public int Port { get; set; }
     public string Protocol { get; set; } = "vless";
     public string Credential { get; set; } = "";
+    public string OpenVpnConfig { get; set; } = "";
+    public string OpenVpnUsername { get; set; } = "";
+    public string OpenVpnPassword { get; set; } = "";
+    public string OpenVpnSourceUrl { get; set; } = "";
     public string Encryption { get; set; } = "none";
     public string Method { get; set; } = "";
     public string Flow { get; set; } = "";
@@ -74,7 +78,7 @@ public sealed class ServerProfile : ObservableObject
     }
 
     [JsonIgnore]
-    public string LatencyText => IsPinging ? LocalizationService.Get("Checking") : LatencyMs is int value ? $"{value} {LocalizationService.Get("Ms")}" : PingFailed ? LocalizationService.Get("Unavailable") : "";
+    public string LatencyText => IsPinging ? LocalizationService.Get("Checking") : LatencyMs is int value ? $"{value} {LocalizationService.Get("Ms")}" : PingFailed ? LocalizationService.Get("Unavailable") : Protocol == "openvpn" && Network.StartsWith("udp", StringComparison.Ordinal) ? "UDP" : "";
 
     [JsonIgnore]
     public string Address => Host.Contains(':', StringComparison.Ordinal) ? $"[{Host}]:{Port}" : $"{Host}:{Port}";

@@ -67,11 +67,11 @@ public static class TunConfigBuilder
         if (defaultRouteDirect || processes.Any(rule => rule.Action == ProcessRouteAction.Direct))
         {
             JsonArray servers = (JsonArray)config["dns"]!["servers"]!;
-            JsonObject directDns = (JsonObject)servers[0]!.DeepClone(); directDns["tag"] = "direct-dns"; directDns["detour"] = "direct";
+            JsonObject directDns = (JsonObject)servers[0]!.DeepClone(); directDns["tag"] = "direct-dns"; directDns.Remove("detour");
             if (directDns.ContainsKey("domain_resolver"))
             {
                 directDns["domain_resolver"] = "direct-bootstrap";
-                servers.Add(new JsonObject { ["type"] = "udp", ["tag"] = "direct-bootstrap", ["server"] = "1.1.1.1", ["detour"] = "direct" });
+                servers.Add(new JsonObject { ["type"] = "udp", ["tag"] = "direct-bootstrap", ["server"] = "1.1.1.1" });
             }
             servers.Add(directDns);
             if (defaultRouteDirect) { config["dns"]!["final"] = "direct-dns"; config["route"]!["default_domain_resolver"] = "direct-dns"; }
@@ -97,7 +97,7 @@ public static class TunConfigBuilder
       "route": {
         "auto_detect_interface": true,
         "rules": [
-          { "process_name": ["xray.exe", "Win10ray.exe", "Win10ray.TunService.exe"], "action": "route", "outbound": "direct" },
+          { "process_name": ["xray.exe", "sing-box.exe", "Win10ray.exe", "Win10ray.TunService.exe"], "action": "route", "outbound": "direct" },
           { "action": "sniff" },
           { "protocol": "dns", "action": "hijack-dns" },
           { "ip_is_private": true, "action": "route", "outbound": "direct" }

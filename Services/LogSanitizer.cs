@@ -9,7 +9,8 @@ namespace XrayMetro.Services;
 /// <summary>Removes credentials before process output can reach UI or a log buffer.</summary>
 public sealed class LogSanitizer
 {
-    private static readonly Regex ShareLink = new(@"\b(?:vless|vmess|trojan|ss)://[^\s<>""']+", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex ShareLink = new(@"\b(?:vless|vmess|trojan|ss|openvpn|ovpn)://[^\s<>""']+", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex Pem = new(@"-----BEGIN [^-\r\n]+-----[\s\S]*?(?:-----END [^-\r\n]+-----|$)", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
     private static readonly Regex Uuid = new(@"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
     private static readonly Regex JsonSecret = new(@"(""(?:password|id|privateKey|publicKey|shortId|token|authorization)""\s*:\s*"")(?:\\.|[^""\\])*("")", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
     private readonly string[] _secrets;
@@ -29,6 +30,7 @@ public sealed class LogSanitizer
             foreach (string secret in _secrets)
                 text = text.Replace(secret, "[redacted]", StringComparison.Ordinal);
             text = ShareLink.Replace(text, "[redacted]");
+            text = Pem.Replace(text, "[redacted]");
             text = Uuid.Replace(text, "[redacted]");
             text = JsonSecret.Replace(text, "$1[redacted]$2");
             text = text.Replace('\0', ' ');

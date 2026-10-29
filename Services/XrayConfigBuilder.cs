@@ -14,9 +14,10 @@ public sealed class XrayConfigBuilder
     public const int HttpPort = 10809;
     public const int DefaultApiPort = 10085;
 
-    public string Build(ServerProfile server, AppSettings settings, int apiPort = DefaultApiPort, int socksPort = SocksPort, int httpPort = HttpPort, string? resolvedServerAddress = null)
+    public string Build(ServerProfile server, AppSettings settings, int apiPort = DefaultApiPort, int socksPort = SocksPort, int httpPort = HttpPort, string? resolvedServerAddress = null, int? openVpnBridgePort = null)
     {
         LinkParser.Validate(server);
+        if (server.Protocol == "openvpn" && (openVpnBridgePort is null or < 1 or > 65535)) throw new ArgumentException("OpenVPN bridge port required.", nameof(openVpnBridgePort));
         if (resolvedServerAddress is not null && !IPAddress.TryParse(resolvedServerAddress, out _)) throw new ArgumentException("Resolved endpoint must be an IP address.", nameof(resolvedServerAddress));
         if (apiPort is < 1 or > 65535 || socksPort is < 1 or > 65535 || httpPort is < 1 or > 65535 ||
             apiPort == socksPort || apiPort == httpPort || socksPort == httpPort) throw new ArgumentOutOfRangeException(nameof(apiPort));
@@ -61,6 +62,8 @@ public sealed class XrayConfigBuilder
             if (new[] { apiPort, socksPort, httpPort }.Contains(10810)) throw new ArgumentException("Process override port collision.");
             ((JsonArray)config["inbounds"]!).Add(Inbound("process-override", "socks", 10810, new JsonObject { ["auth"] = "noauth", ["udp"] = true, ["ip"] = "127.0.0.1" }));
         }
+        if (server.Protocol == "openvpn")
+            config["outbounds"]![0] = new JsonObject { ["tag"] = "proxy", ["protocol"] = "socks", ["settings"] = new JsonObject { ["servers"] = new JsonArray(new JsonObject { ["address"] = "127.0.0.1", ["port"] = openVpnBridgePort!.Value }) } };
         return config.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
     }
 

@@ -91,7 +91,7 @@ public sealed partial class MainViewModel
             await DisconnectCoreAsync();
             SelectedServer = Servers.FirstOrDefault(s => s.SubscriptionId == subscription.Id) ?? Servers.FirstOrDefault();
             if (AutoSwitchServers && SelectedServer is not null)
-                await ConnectAvailableAsync(SelectedServer, false, _lifetime.Token);
+                await ConnectAvailableAsync(SelectedServer, false, _lifetime.Token, interactive: false);
             else { _state.Settings.ResumeConnection = false; Message = LocalizationService.Get("ActiveServerRemoved"); }
         }
         catch (Exception exception) { await DisconnectAfterFailureAsync(); StatusText = LocalizationService.Get("Error"); EnqueueLog(LocalizationService.Get("ActiveServerRemoved")); if (exception is OperationCanceledException) throw; }

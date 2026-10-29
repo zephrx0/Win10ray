@@ -33,6 +33,19 @@ public partial class MainWindow : Window
         ConnectionHeader.SizeChanged += (_, _) => UpdateConnectionLayout();
     }
 
+    private void OpenVpnDragOver(object sender, DragEventArgs args)
+    {
+        string[]? files = args.Data.GetData(DataFormats.FileDrop) as string[];
+        args.Effects = files is { Length: > 0 } && Array.TrueForAll(files, file => file.EndsWith(".ovpn", StringComparison.OrdinalIgnoreCase)) && _viewModel.ImportOpenVpnFileCommand.CanExecute(files) ? DragDropEffects.Copy : DragDropEffects.None;
+        args.Handled = true;
+    }
+    private void OpenVpnDrop(object sender, DragEventArgs args)
+    {
+        if (args.Data.GetData(DataFormats.FileDrop) is string[] files && Array.TrueForAll(files, file => file.EndsWith(".ovpn", StringComparison.OrdinalIgnoreCase)) && _viewModel.ImportOpenVpnFileCommand.CanExecute(files))
+            _viewModel.ImportOpenVpnFileCommand.Execute(files);
+        args.Handled = true;
+    }
+
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);

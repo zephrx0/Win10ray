@@ -216,6 +216,32 @@ internal static class UiSmokeTests
                     apply.Invoke(vm,[new SubscriptionProfile{Id=group,Url="https://example.com/test"},new[]{providerProfile}]);
                     if(!vm.Servers.Contains(preserved) || preserved.Name != "My custom name" || vm.SelectedServer != preserved)throw new InvalidOperationException("Subscription refresh lost the selection or custom name.");
                     checks += 3;
+                    string ovpnPath = Path.Combine(directory, "UI-test.ovpn");
+                    await File.WriteAllTextAsync(ovpnPath, "client\ndev tun\nremote 127.0.0.1 1194 udp\npeer-fingerprint " + new string('a', 64));
+                    vm.ImportOpenVpnFileCommand.Execute(new[] { ovpnPath });
+                    for (int attempt = 0; attempt < 50 && !vm.Servers.Any(server => server.Protocol == "openvpn"); attempt++) await Task.Delay(50);
+                    ServerProfile ovpnProfile = vm.Servers.Single(server => server.Protocol == "openvpn");
+                    if (ovpnProfile.ProtocolLabel != "OPENVPN" || ovpnProfile.LatencyText != "UDP") throw new InvalidOperationException("OpenVPN file import or UDP server display failed.");
+                    vm.SelectedPage = 1; vm.SelectedServer = ovpnProfile;
+                    await Task.Delay(100); window.UpdateLayout();
+                    Grid ovpnTile = Descendants<Grid>(window).First(grid => grid.ContextMenu is not null && ReferenceEquals(grid.DataContext, ovpnProfile));
+                    ContextMenu menu = ovpnTile.ContextMenu; menu.PlacementTarget = ovpnTile; menu.IsOpen = true;
+                    await Task.Delay(100);
+                    MenuItem credentialsItem = menu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, LocalizationService.Get("OpenVpnCredentials")));
+                    if (!credentialsItem.IsVisible || !credentialsItem.Command.CanExecute(ovpnProfile)) throw new InvalidOperationException("OpenVPN credential context action is not bound.");
+                    menu.IsOpen = false; checks += 2;
+                    foreach (bool dark in new[] { true, false })
+                    {
+                        vm.DarkTheme = dark;
+                        Window credentials = (Window)Activator.CreateInstance(typeof(OpenVpnCredentialsWindow), System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new object[] { "test-user" }, null)!;
+                        credentials.Left = -20000; credentials.Top = -20000; credentials.ShowActivated = false; credentials.ShowInTaskbar = false; credentials.WindowStartupLocation = WindowStartupLocation.Manual;
+                        credentials.Show(); await Task.Delay(80); credentials.UpdateLayout();
+                        PasswordBox secret = Descendants<PasswordBox>(credentials).Single();
+                        if (secret.Template.FindName("PART_ContentHost", secret) is null || secret.Background is not SolidColorBrush) throw new InvalidOperationException("The native password field has no flat theme template.");
+                        secret.Password = "SYNTHETIC_ONLY"; credentials.Close();
+                        if (secret.Password.Length != 0) throw new InvalidOperationException("The password field was retained after closing.");
+                        checks++;
+                    }
                     vm.Servers.Clear(); vm.SelectedServer = null; vm.SelectedPage = 0;
                     if (vm.ToggleConnectionCommand.CanExecute(null)) throw new InvalidOperationException("Connecting without a server was allowed.");
                     await Task.Delay(240);

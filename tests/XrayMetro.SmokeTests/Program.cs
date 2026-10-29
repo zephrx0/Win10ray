@@ -7,6 +7,7 @@ using XrayMetro.Models;
 using XrayMetro.Services;
 
 if (args.Length > 0 && args[0] == "--core-child") { await CrashCleanupTests.RunCoreChildAsync(args); return; }
+if (args.Length == 2 && args[0] == "--openvpn-only") { Console.WriteLine("PASS: " + await OpenVpnTests.RunAsync(args[1]) + " OpenVPN checks."); return; }
 int cultureArgument = Array.IndexOf(args, "--culture");
 if (cultureArgument >= 0 && cultureArgument + 1 < args.Length)
 {
@@ -166,4 +167,5 @@ if (watchdogArgument >= 0 && watchdogArgument + 1 < args.Length) passed += await
 int tunArgument = Array.IndexOf(args, "--sing-box");
 int helperArgument = Array.IndexOf(args, "--tun-helper");
 if (tunArgument >= 0 && tunArgument + 1 < args.Length) passed += await TunTests.RunAsync(args[tunArgument + 1], helperArgument >= 0 && helperArgument + 1 < args.Length ? args[helperArgument + 1] : null);
+passed += await OpenVpnTests.RunAsync(tunArgument >= 0 && tunArgument + 1 < args.Length ? args[tunArgument + 1] : null);
 Console.WriteLine($"PASS: {passed} smoke/integration checks.");

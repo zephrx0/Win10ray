@@ -24,6 +24,8 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly SubscriptionService _subscriptions;
     private readonly AutoStartService _autoStart = new();
     private readonly XrayProcessService _core;
+    private readonly OpenVpnProcessService _openVpn = new();
+    private readonly Dictionary<string, (string Username, string Password)> _openVpnSessionCredentials = new(StringComparer.Ordinal);
     private readonly ISystemProxyService _proxy;
     private readonly ITunSessionService _tun;
     private readonly ServerHealthService _health;
@@ -76,11 +78,14 @@ public sealed partial class MainViewModel : ObservableObject
         _selectedSubscription = Subscriptions.FirstOrDefault();
         NavigateCommand = new(p => { if (int.TryParse(p?.ToString(), out int page)) SelectedPage = page; });
         SelectServersTabCommand = new(p => { if (int.TryParse(p?.ToString(), out int tab) && tab is 0 or 1) ServersTab = tab; });
-        CancelConnectionCommand = new(_ => { _state.Settings.ResumeConnection = false; _connectCancellation?.Cancel(); _startupCancellation?.Cancel(); Persist(); }, _ => IsBusy && (_connectCancellation is not null || _startupCancellation is not null));
+        CancelConnectionCommand = new(_ => { _state.Settings.ResumeConnection = false; _openVpnSessionCredentials.Clear(); _connectCancellation?.Cancel(); _startupCancellation?.Cancel(); Persist(); }, _ => IsBusy && (_connectCancellation is not null || _startupCancellation is not null));
         StartRenameCommand = new(_ => IsRenaming = true, _ => CanEditConnection && SelectedServer is not null);
         CancelRenameCommand = new(_ => { IsRenaming = false; RenameText = SelectedServer?.Name ?? ""; });
         ToggleConnectionCommand = new(_ => ToggleConnectionAsync(), ReportError, _ => !IsBusy && !IsRefreshingSubscriptions && (IsConnected || SelectedServer is not null));
         ImportClipboardCommand = new(_ => ImportClipboardAsync(), ReportError, _ => CanEditConnection);
+        ImportOpenVpnFileCommand = new(p => ImportOpenVpnFilesAsync(p as string[]), ReportError, _ => CanEditConnection);
+        EditOpenVpnCredentialsCommand = new(p => EditOpenVpnCredentialsAsync(p as ServerProfile), ReportError, p => CanEditConnection && p is ServerProfile { Protocol: "openvpn" });
+        ExportOpenVpnCommand = new(p => ExportOpenVpnAsync(p as ServerProfile), ReportError, p => p is ServerProfile { Protocol: "openvpn" });
         PingAllCommand = new(_ => PingAllAsync(), ReportError, _ => Servers.Count > 0);
         DeleteServerCommand = new(_ => DeleteServerAsync(), ReportError, _ => CanEditConnection && SelectedServer is not null);
         RenameServerCommand = new(_ => RenameServerAsync(), ReportError, _ => CanEditConnection && SelectedServer is not null);
@@ -96,6 +101,8 @@ public sealed partial class MainViewModel : ObservableObject
         ShowQrCommand = new(p => Views.QrWindow.ShowAsync(p is SubscriptionProfile subscription ? subscription.Url : p is ServerProfile server ? ShareLinkExporter.Export(server) : ""), ReportError, p => p is SubscriptionProfile or ServerProfile);
         _core.LogReceived += EnqueueLog;
         _core.UnexpectedExit += OnCoreExit;
+        _openVpn.LogReceived += EnqueueLog;
+        _openVpn.UnexpectedExit += OnCoreExit;
         _tun.LogReceived += EnqueueLog;
         _tun.ConnectionLost += OnTunLost;
         _logTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(200), DispatcherPriority.Background, (_, _) => DrainLogs(), Application.Current.Dispatcher);
@@ -112,6 +119,8 @@ public sealed partial class MainViewModel : ObservableObject
     public string SearchText { get => _searchText; set { if (Set(ref _searchText, value?.Trim() ?? "")) ServerView.Refresh(); } }
     public string ClientVersion => HardwareIdService.ClientVersion;
     public string CoreVersion { get => _coreVersion; private set => Set(ref _coreVersion, value); }
+    private string _openVpnCoreVersion = "...";
+    public string OpenVpnCoreVersion { get => _openVpnCoreVersion; private set => Set(ref _openVpnCoreVersion, value); }
     public AsyncCommand CheckClientUpdatesCommand { get; }
     public AsyncCommand InstallClientUpdateCommand { get; }
     public AsyncCommand ShowQrCommand { get; }
@@ -143,6 +152,7 @@ public sealed partial class MainViewModel : ObservableObject
     public RelayCommand NavigateCommand { get; }
     public AsyncCommand ToggleConnectionCommand { get; }
     public AsyncCommand ImportClipboardCommand { get; }
+    public AsyncCommand ImportOpenVpnFileCommand { get; }
     public AsyncCommand PingAllCommand { get; }
     public AsyncCommand DeleteServerCommand { get; }
     public AsyncCommand RenameServerCommand { get; }
@@ -289,6 +299,7 @@ public sealed partial class MainViewModel : ObservableObject
                 await ToggleConnectionAsync();
                 if (IsConnected || startup.IsCancellationRequested) break;
                 if (_lastConnectionError is TunServiceException tunFailure && !tunFailure.IsTransient) break;
+                if (_lastConnectionError is Views.OpenVpnAuthenticationCancelledException) break;
                 if (_lastConnectionError is System.IO.FileNotFoundException or UnauthorizedAccessException or FormatException) break;
                 if (_lastConnectionError?.Message is string message && (message == LocalizationService.Get("TunUacCancelled") || message == LocalizationService.Get("TunMissing") || message == LocalizationService.Get("TunInstallFailed") || message == LocalizationService.Get("InvalidDoh"))) break;
                 IsBusy = true;
@@ -306,6 +317,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     public async Task RefreshVersionAsync()
     {
+        try { OpenVpnCoreVersion = await _openVpn.ReadVersionAsync(_lifetime.Token); } catch { OpenVpnCoreVersion = LocalizationService.Get("Unavailable"); }
         try { CoreVersion = await _core.ReadVersionAsync(_lifetime.Token); }
         catch (System.IO.FileNotFoundException) { CoreVersion = LocalizationService.Get("CoreMissing"); }
         catch (Exception exception) when (exception is InvalidOperationException or System.ComponentModel.Win32Exception or OperationCanceledException or System.IO.IOException) { CoreVersion = LocalizationService.Get("Unavailable"); }
@@ -324,6 +336,8 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(CanEditProcessRules));
         AddProcessRuleCommand?.Notify(); DeleteProcessRuleCommand?.Notify(); BrowseProcessCommand?.Notify(); SelectRunningProcessCommand?.Notify();
         ToggleConnectionCommand?.Notify(); ImportClipboardCommand?.Notify(); PingAllCommand?.Notify();
+        ImportOpenVpnFileCommand?.Notify();
+        EditOpenVpnCredentialsCommand?.Notify();
         DeleteServerCommand?.Notify(); RenameServerCommand?.Notify(); AddSubscriptionCommand?.Notify();
         UpdateSubscriptionsCommand?.Notify(); UpdateSubscriptionCommand?.Notify(); DeleteSubscriptionCommand?.Notify();
         StartRenameCommand?.Notify();
@@ -368,7 +382,7 @@ public sealed partial class MainViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            if (IsConnected) { _state.Settings.ResumeConnection = false; await DisconnectCoreAsync(); await SaveAsync(); return; }
+            if (IsConnected) { _state.Settings.ResumeConnection = false; _openVpnSessionCredentials.Clear(); await DisconnectCoreAsync(); await SaveAsync(); return; }
             Message = "";
             ServerProfile server = SelectedServer ?? throw new InvalidOperationException(LocalizationService.Pick("Сначала выберите сервер.", "Choose a server first."));
             _trafficCarry = _sessionBytes = 0;
@@ -387,7 +401,7 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    private async Task ConnectAvailableAsync(ServerProfile server, bool skipCurrent, CancellationToken token)
+    private async Task ConnectAvailableAsync(ServerProfile server, bool skipCurrent, CancellationToken token, bool interactive = true)
     {
         if (HasDnsError) throw new InvalidOperationException(LocalizationService.Get("InvalidDoh"));
         await _core.CheckEnvironmentAsync(BypassRussia || BlockAds, token);
@@ -406,7 +420,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             ++attemptNumber;
             StatusDetail = LocalizationService.Pick($"Проверка сервера {attemptNumber} из {candidates.Length}", $"Checking server {attemptNumber} of {candidates.Length}");
-            if (autoSwitch && attemptNumber > 1)
+            if (autoSwitch && attemptNumber > 1 && !(candidate.Protocol == "openvpn" && candidate.Network.StartsWith("udp", StringComparison.Ordinal)))
             {
                 candidate.IsPinging = true;
                 try { candidate.LatencyMs = await _health.PingAsync(candidate, cancellation); candidate.PingFailed = candidate.LatencyMs is null; }
@@ -417,6 +431,25 @@ public sealed partial class MainViewModel : ObservableObject
             try
             {
                 string? endpoint = null;
+                await _openVpn.StopAsync();
+                if (candidate.Protocol == "openvpn")
+                {
+                    OpenVpnOptions options = OpenVpnProfileParser.Read(candidate.OpenVpnConfig);
+                    string? username = candidate.OpenVpnUsername.Length > 0 ? candidate.OpenVpnUsername : options.Username;
+                    string? password = candidate.OpenVpnPassword.Length > 0 ? candidate.OpenVpnPassword : options.Password;
+                    if (_openVpnSessionCredentials.TryGetValue(candidate.SourceKey, out var remembered))
+                    { username = remembered.Username; password = remembered.Password; }
+                    if (options.RequiresCredentials && (username.Length == 0 || password.Length == 0))
+                    {
+                        if (!interactive) throw new InvalidOperationException(LocalizationService.Get("OpenVpnCredentialsRequired"));
+                        Views.OpenVpnCredentials credentials = Views.OpenVpnCredentialsWindow.Prompt(username, cancellation);
+                        username = credentials.Username; password = credentials.Password;
+                        if (credentials.Remember) { candidate.OpenVpnUsername = username; candidate.OpenVpnPassword = password; }
+                    }
+                    if (options.RequiresCredentials) _openVpnSessionCredentials[candidate.SourceKey] = (username, password);
+                    StatusDetail = LocalizationService.Get("OpenVpnConnecting");
+                    await _openVpn.StartAsync(candidate, username, password, cancellation, UseDnsOverHttps, DnsOverHttpsUrl);
+                }
                 if (UseTun && !IPAddress.TryParse(candidate.Host, out _))
                 {
                     using var dnsTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
@@ -428,7 +461,7 @@ public sealed partial class MainViewModel : ObservableObject
                     endpoint = (addresses.FirstOrDefault(address => address.AddressFamily == AddressFamily.InterNetwork) ?? addresses.FirstOrDefault())?.ToString()
                         ?? throw new InvalidOperationException(LocalizationService.Pick("Не удалось определить IP-адрес сервера.", "Could not resolve the server address."));
                 }
-                string config = await Task.Run(() => new XrayConfigBuilder().Build(candidate, _state.Settings, _core.ApiPort, _core.SocksPort, _core.HttpPort, endpoint), cancellation);
+                string config = await Task.Run(() => new XrayConfigBuilder().Build(candidate, _state.Settings, _core.ApiPort, _core.SocksPort, _core.HttpPort, endpoint, candidate.Protocol == "openvpn" ? _openVpn.SocksPort : null), cancellation);
                 var startup = Stopwatch.StartNew();
                 await _core.StartAsync(config, Secrets(candidate).Append(DnsOverHttpsUrl), BypassRussia || BlockAds, cancellation);
                 EnqueueLog($"Xray ready: {startup.ElapsedMilliseconds} ms.");
@@ -440,12 +473,12 @@ public sealed partial class MainViewModel : ObservableObject
                 ready = true;
                 return true;
             }
-            catch (Exception exception) when (autoSwitch && !cancellation.IsCancellationRequested && exception is InvalidOperationException or FormatException or SocketException or OperationCanceledException)
+            catch (Exception exception) when (autoSwitch && !cancellation.IsCancellationRequested && exception is not Views.OpenVpnAuthenticationCancelledException && exception is InvalidOperationException or FormatException or SocketException or OperationCanceledException)
             {
                 candidate.PingFailed = true; candidate.LatencyMs = null;
                 return false;
             }
-            finally { if (!ready) await _core.StopAsync(); }
+            finally { if (!ready) { await _core.StopAsync(); await _openVpn.StopAsync(); } }
         }, token);
         token.ThrowIfCancellationRequested();
         if (UseTun) await _tun.StartAsync(token, UseDnsOverHttps, DnsOverHttpsUrl, BlockAds, ProcessRules.ToArray(), DefaultRouteDirect);
@@ -506,7 +539,7 @@ public sealed partial class MainViewModel : ObservableObject
             await DisconnectCoreAsync();
             if (!switchServer) throw new InvalidOperationException(LocalizationService.Pick("Соединение с сервером потеряно.", "The connection was lost."));
             EnqueueLog(LocalizationService.Pick("Сервер недоступен. Проверка остальных серверов подписки.", "Server unavailable. Checking other servers in the subscription."));
-            await ConnectAvailableAsync(previous!, true, _connectCancellation.Token);
+            await ConnectAvailableAsync(previous!, true, _connectCancellation.Token, interactive: false);
         }
         catch (Exception exception)
         {
@@ -521,7 +554,7 @@ public sealed partial class MainViewModel : ObservableObject
     }
     private static IEnumerable<string> Secrets(ServerProfile server) =>
         new[] { server.Credential, server.PublicKey, server.ShortId, server.Encryption, server.Extra, server.Path, server.SpiderX, server.ServiceName }
-            .Where(value => !string.IsNullOrEmpty(value) && value is not ("/" or "none" or "auto"));
+            .Where(value => !string.IsNullOrEmpty(value) && value is not ("/" or "none" or "auto")).Concat(OpenVpnProcessService.Secrets(server));
     private async Task DisconnectCoreAsync()
     {
         ++_sessionGeneration;
@@ -535,6 +568,7 @@ public sealed partial class MainViewModel : ObservableObject
         Exception? proxyError = null;
         try { await Task.Run(_proxy.Disable); } catch (Exception exception) { proxyError = exception; }
         await _core.StopAsync();
+        await _openVpn.StopAsync();
         IsConnected = false; UploadSpeed = DownloadSpeed = FormatBytes(0) + LocalizationService.Pick("/с", "/s");
         StatusText = LocalizationService.Pick("Отключено", "Disconnected"); StatusDetail = LocalizationService.Pick("Соединение завершено", "Disconnected");
         EnqueueLog(LocalizationService.Pick("Ядро остановлено. Соединение завершено.", "Disconnected."));
@@ -607,7 +641,13 @@ public sealed partial class MainViewModel : ObservableObject
         string text;
         try { text = Clipboard.ContainsText() ? Clipboard.GetText() : ""; }
         catch { throw new InvalidOperationException(LocalizationService.Pick("Буфер обмена занят. Повторите импорт.", "Clipboard is busy. Try again.")); }
-        ImportResult result = await Task.Run(() => new LinkParser().ParseMany(text), _lifetime.Token);
+        ImportResult result;
+        if (OpenVpnImportService.TryGetUrl(text, out Uri? uri))
+        {
+            using OpenVpnImportService importer = new(SubscriptionsThroughConnection && IsConnected ? _core.HttpPort : null);
+            result = new([await importer.FetchAsync(uri!, _lifetime.Token)], []);
+        }
+        else result = await Task.Run(() => new LinkParser().ParseMany(text), _lifetime.Token);
         if (!CanEditConnection) return;
         int count = 0;
         foreach (ServerProfile server in result.Profiles)
@@ -621,6 +661,7 @@ public sealed partial class MainViewModel : ObservableObject
         using var limit = new SemaphoreSlim(8);
         await Task.WhenAll(Servers.ToArray().Select(async server =>
         {
+            if (server.Protocol == "openvpn" && server.Network.StartsWith("udp", StringComparison.Ordinal)) { server.LatencyMs = null; server.PingFailed = false; return; }
             await limit.WaitAsync(_lifetime.Token);
             server.IsPinging = true; server.PingFailed = false;
             try
@@ -729,9 +770,11 @@ public sealed partial class MainViewModel : ObservableObject
         finally
         {
             _core.LogReceived -= EnqueueLog; _core.UnexpectedExit -= OnCoreExit;
+            _openVpn.LogReceived -= EnqueueLog; _openVpn.UnexpectedExit -= OnCoreExit; _openVpn.Dispose();
+            _openVpnSessionCredentials.Clear();
             _tun.LogReceived -= EnqueueLog; _tun.ConnectionLost -= OnTunLost;
             _logTimer.Stop(); _subscriptions.Dispose(); _connectionGate.Release();
         }
     }
-    public void EmergencyStop() => _tun.EmergencyStop();
+    public void EmergencyStop() { _tun.EmergencyStop(); _openVpn.EmergencyStop(); }
 }

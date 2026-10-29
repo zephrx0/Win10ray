@@ -13,6 +13,7 @@ public static class ShareLinkExporter
         LinkParser.Validate(server);
         string authority = server.Address;
         string name = "#" + Uri.EscapeDataString(server.Name);
+        if (server.Protocol == "openvpn") return OpenVpnImportService.TryGetUrl(server.OpenVpnSourceUrl, out _) ? "openvpn://import-profile/" + server.OpenVpnSourceUrl : "ovpn://" + Convert.ToBase64String(Encoding.UTF8.GetBytes(server.OpenVpnConfig)).TrimEnd('=').Replace('+', '-').Replace('/', '_') + name;
         if (server.Protocol == "shadowsocks")
             return "ss://" + Convert.ToBase64String(Encoding.UTF8.GetBytes(server.Method + ":" + server.Credential)).TrimEnd('=').Replace('+', '-').Replace('/', '_') + "@" + authority + name;
         Dictionary<string, string> query = new()
