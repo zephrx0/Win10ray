@@ -19,22 +19,23 @@ internal static class UpdateTests
             try { action(); throw new InvalidOperationException("FAIL: invalid update accepted"); }
             catch (Exception exception) when (exception is InvalidDataException or JsonException or KeyNotFoundException or FormatException) { passed++; }
         }
-        string version = typeof(UpdateService).Assembly.GetName().Version!.ToString(3);
-        ClientRelease Release(byte[] bytes) => new(version, UpdateService.ReleasesUrl + "/download/v" + version + "/Win10ray-" + version + "-win-x64.zip", Convert.ToHexString(SHA256.HashData(bytes)), bytes.LongLength);
-        string Metadata(ClientRelease release, bool draft = false, bool prerelease = false) => JsonSerializer.Serialize(new
+        string version = HardwareIdService.ClientVersion;
+        bool experimental = UpdateService.IsExperimentalVersion(version);
+        ClientRelease Release(byte[] bytes) => new(version, UpdateService.ReleasesUrl + "/download/v" + version + "/Win10ray-" + version + "-win-x64.zip", Convert.ToHexString(SHA256.HashData(bytes)), bytes.LongLength, experimental);
+        string Metadata(ClientRelease release, bool draft = false, bool? prerelease = null) => JsonSerializer.Serialize(new
         {
-            tag_name = "v" + release.Version, draft, prerelease,
+            tag_name = "v" + release.Version, draft, prerelease = prerelease ?? release.IsExperimental,
             assets = new[] { new { name = Path.GetFileName(new Uri(release.DownloadUrl).LocalPath), state = "uploaded", digest = "sha256:" + release.Sha256, size = release.Size, browser_download_url = release.DownloadUrl } }
         });
         foreach (string invalid in new[] { "latest", "v1.3", "v1.3.0-beta", "1.3.0.0", "v99999999999999.0.0", "https://secret.example" }) Reject(() => UpdateService.ParseVersion(invalid));
         ClientRelease fixture = Release(Encoding.UTF8.GetBytes("Verified release payload"));
         ClientRelease exe = fixture with { DownloadUrl = UpdateService.ReleasesUrl + "/download/v" + version + "/Win10ray-Setup-" + version + ".exe" };
-        Check(UpdateService.ParseRelease(Metadata(exe), "1.0.0") == exe && exe.IsInstaller && exe.CacheFileName == "setup.exe", "EXE-only releases are supported");
+        Check(UpdateService.ParseRelease(Metadata(exe), "1.0.0", experimental) == exe && exe.IsInstaller && exe.CacheFileName == "setup.exe", "EXE-only releases are supported");
         using (JsonDocument zipMetadata = JsonDocument.Parse(Metadata(fixture)))
         using (JsonDocument exeMetadata = JsonDocument.Parse(Metadata(exe)))
         {
-            string both = JsonSerializer.Serialize(new { tag_name = "v" + version, draft = false, prerelease = false, assets = new[] { zipMetadata.RootElement.GetProperty("assets")[0], exeMetadata.RootElement.GetProperty("assets")[0] } });
-            Check(UpdateService.ParseRelease(both, "1.0.0") == exe, "installer is preferred even when ZIP is listed first");
+            string both = JsonSerializer.Serialize(new { tag_name = "v" + version, draft = false, prerelease = experimental, assets = new[] { zipMetadata.RootElement.GetProperty("assets")[0], exeMetadata.RootElement.GetProperty("assets")[0] } });
+            Check(UpdateService.ParseRelease(both, "1.0.0", experimental) == exe, "installer is preferred even when ZIP is listed first");
         }
         Reject(() => UpdateService.Validate(exe with { DownloadUrl = exe.DownloadUrl + "?run=anything" }));
         Check(!ExeInstallerService.EvaluateExitCode(0) && ExeInstallerService.EvaluateExitCode(3010), "restart-required success distinguished without restarting Windows");
@@ -43,13 +44,13 @@ internal static class UpdateTests
             try { ExeInstallerService.EvaluateExitCode(exitCode); throw new InvalidOperationException("FAIL: installer failure accepted"); }
             catch (InstallerException exception) { Check(exception.ExitCode == exitCode && (exitCode is not (2 or 5) || exception.Code == "install_cancelled"), "installer cancellation and failure codes preserved"); }
         }
-        Check(UpdateService.ParseRelease(Metadata(fixture), "1.0.0") == fixture, "new stable release is selected");
-        Check(UpdateService.ParseRelease(Metadata(fixture), version) is null && UpdateService.ParseRelease(Metadata(fixture), "99.0.0") is null, "equal versions and downgrades ignored");
+        Check(UpdateService.ParseRelease(Metadata(fixture), "1.0.0", experimental) == fixture, "new release in the selected channel is selected");
+        Check(UpdateService.ParseRelease(Metadata(fixture), version, experimental) is null && UpdateService.ParseRelease(Metadata(fixture), "99.0.0", experimental) is null, "equal versions and downgrades ignored");
         Check(UpdateService.ParseRelease(Metadata(fixture, draft: true), "1.0.0") is null && UpdateService.ParseRelease(Metadata(fixture, prerelease: true), "1.0.0") is null, "drafts and prereleases ignored");
         Reject(() => UpdateService.Validate(fixture with { DownloadUrl = "https://example.com/release.zip" }));
         Reject(() => UpdateService.Validate(fixture with { Sha256 = "unverified" }));
         Reject(() => UpdateService.Validate(fixture with { Size = UpdateService.MaximumArchiveBytes + 1 }));
-        Reject(() => UpdateService.ParseRelease(Metadata(fixture).Replace("win-x64.zip", "win-arm64.zip"), "1.0.0"));
+        Reject(() => UpdateService.ParseRelease(Metadata(fixture).Replace("win-x64.zip", "win-arm64.zip"), "1.0.0", experimental));
         Reject(() => UpdatePackage.Under(Path.GetTempPath(), "../escape.exe"));
 
         string directory = Path.Combine(Path.GetTempPath(), "Win10ray-UpdateTests-" + Guid.NewGuid().ToString("N"));
@@ -59,8 +60,8 @@ internal static class UpdateTests
             using (var service = new UpdateService(new Handler(request =>
             {
                 Check(!request.Headers.Contains("x-hwid") && !request.Headers.Contains("Authorization"), "updates never send subscription identifiers or credentials");
-                return new(HttpStatusCode.OK) { Content = new StringContent(Metadata(fixture)) };
-            }))) Check(await service.CheckAsync("1.0.0") == fixture, "GitHub release metadata request");
+                return new(HttpStatusCode.OK) { Content = new StringContent(experimental ? "[" + Metadata(fixture) + "]" : Metadata(fixture)) };
+            }))) Check(await service.CheckAsync("1.0.0", experimental: experimental) == fixture, "GitHub release metadata request");
             using (var service = new UpdateService(new Handler(_ => new(HttpStatusCode.NotFound)))) Check(await service.CheckAsync("1.0.0") is null, "repository without published releases is handled");
             byte[] payload = Encoding.UTF8.GetBytes("Verified release payload");
             using (var service = new UpdateService(new Handler(_ => new(HttpStatusCode.OK) { Content = new ByteArrayContent(payload) })))
@@ -166,7 +167,7 @@ internal static class UpdateTests
             {
                 string version = FileVersionInfo.GetVersionInfo(path).ProductVersion!.Trim();
                 await using var input = File.OpenRead(path);
-                return new(version, UpdateService.ReleasesUrl + "/download/v" + version + "/Win10ray-Setup-" + version + ".exe", Convert.ToHexString(await SHA256.HashDataAsync(input)), input.Length);
+                return new(version, UpdateService.ReleasesUrl + "/download/v" + version + "/Win10ray-Setup-" + version + ".exe", Convert.ToHexString(await SHA256.HashDataAsync(input)), input.Length, UpdateService.IsExperimentalVersion(version));
             }
             ClientRelease release = await ReleaseAsync(setup);
             try { await ExeInstallerService.VerifyAsync(setup, release with { Sha256 = new string('0', 64) }); throw new InvalidOperationException("Invalid installer checksum accepted."); }

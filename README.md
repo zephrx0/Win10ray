@@ -1,5 +1,8 @@
 # Win10ray
 
+> Экспериментальная ветка. Возможны ошибки и прерывания подключения. [Стабильная версия](https://github.com/zephrx0/Win10ray/releases/latest).
+> Experimental branch. Bugs and connection interruptions are possible.
+
 [![Release](https://img.shields.io/github/v/release/zephrx0/Win10ray?label=stable)](https://github.com/zephrx0/Win10ray/releases/latest)
 [![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D7)](https://github.com/zephrx0/Win10ray/releases/latest)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4)](https://dotnet.microsoft.com/download/dotnet/8.0)
