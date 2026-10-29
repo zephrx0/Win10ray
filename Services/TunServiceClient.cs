@@ -24,7 +24,7 @@ public interface ITunSessionService
     event Action<string>? LogReceived;
     event Action? ConnectionLost;
     Task PrepareAsync(CancellationToken cancellationToken);
-    Task StartAsync(CancellationToken cancellationToken, bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null);
+    Task StartAsync(CancellationToken cancellationToken, bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null, bool blockAds = true, Models.ProcessRouteRule[]? processRules = null, bool defaultRouteDirect = false);
     Task StopAsync();
     void EmergencyStop();
 }
@@ -49,11 +49,11 @@ public sealed class TunServiceClient : ITunSessionService
         catch (Win32Exception exception) { throw Failure("service_win32_" + exception.NativeErrorCode); }
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken, bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null)
+    public async Task StartAsync(CancellationToken cancellationToken, bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null, bool blockAds = true, Models.ProcessRouteRule[]? processRules = null, bool defaultRouteDirect = false)
     {
         for (int attempt = 0; ; attempt++)
         {
-            try { await StartOnceAsync(cancellationToken, useDnsOverHttps, dnsOverHttpsUrl).ConfigureAwait(false); return; }
+            try { await StartOnceAsync(cancellationToken, useDnsOverHttps, dnsOverHttpsUrl, blockAds, processRules, defaultRouteDirect).ConfigureAwait(false); return; }
             catch (TunServiceException exception) when (attempt == 0 && !cancellationToken.IsCancellationRequested && exception.IsTransient)
             {
                 _prepared = false;
@@ -63,13 +63,13 @@ public sealed class TunServiceClient : ITunSessionService
         }
     }
 
-    private async Task StartOnceAsync(CancellationToken cancellationToken, bool useDnsOverHttps, string? dnsOverHttpsUrl)
+    private async Task StartOnceAsync(CancellationToken cancellationToken, bool useDnsOverHttps, string? dnsOverHttpsUrl, bool blockAds, Models.ProcessRouteRule[]? processRules, bool defaultRouteDirect)
     {
         try
         {
             await PrepareAsync(cancellationToken).ConfigureAwait(false);
             _token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-            TunResponse result = await SendAsync(new("start", _token, useDnsOverHttps, dnsOverHttpsUrl), TimeSpan.FromSeconds(TunProtocol.ClientRequestSeconds), cancellationToken).ConfigureAwait(false);
+            TunResponse result = await SendAsync(new("start", _token, useDnsOverHttps, dnsOverHttpsUrl, blockAds, processRules, defaultRouteDirect), TimeSpan.FromSeconds(TunProtocol.ClientRequestSeconds), cancellationToken).ConfigureAwait(false);
             Publish(result);
             if (!result.Ok || !result.Running || string.IsNullOrEmpty(result.Token)) throw Failure(result.Code);
             _token = result.Token;

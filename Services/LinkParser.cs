@@ -43,6 +43,7 @@ public sealed class LinkParser
             };
             Validate(profile);
             profile.SourceKey = CalculateSourceKey(profile);
+            profile.HasCustomName = false;
             return profile;
         }
         catch (ShareLinkException) { throw; }

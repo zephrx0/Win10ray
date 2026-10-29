@@ -23,7 +23,7 @@ internal static class TunTests
             TunRequest restored = await TunProtocol.ReadAsync<TunRequest>(memory, CancellationToken.None);
             Check(restored.Command == "heartbeat" && restored.Token == "synthetic-session", "IPC frame round-trip");
         }
-        Check(JsonSerializer.Deserialize<TunResponse>("{\"Ok\":true}")!.ProtocolVersion == 0 && TunProtocol.CurrentVersion == 5, "legacy service detected for one-time upgrade");
+        Check(JsonSerializer.Deserialize<TunResponse>("{\"Ok\":true}")!.ProtocolVersion == 0 && TunProtocol.CurrentVersion == 6, "legacy service detected for one-time upgrade");
         Check(Path.GetDirectoryName(TunServicePaths.InstallDirectory) == Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "privileged service is independent of the application install folder");
         string legacyImage = Path.Combine(TunServicePaths.LegacyDirectory, "Win10ray.TunService.exe");
         Check(TunServicePaths.IsAllowedImage(legacyImage, true) && !TunServicePaths.IsAllowedImage(legacyImage, false), "legacy helper can only receive a public version probe, never session tokens");

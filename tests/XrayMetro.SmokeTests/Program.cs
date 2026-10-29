@@ -102,7 +102,7 @@ foreach (ServerProfile profile in profiles)
     Check(root.GetProperty("policy").GetProperty("system").GetProperty("statsInboundDownlink").GetBoolean(), "inbound counters enabled");
     Check(root.GetProperty("log").GetProperty("access").GetString() == "none", "access logs disabled");
 }
-using (JsonDocument configuration = JsonDocument.Parse(builder.Build(vless, new AppSettings { BypassRussia = true })))
+using (JsonDocument configuration = JsonDocument.Parse(builder.Build(vless, new AppSettings { BypassRussia = true, BlockAds = false })))
 {
     JsonElement routing = configuration.RootElement.GetProperty("routing");
     Check(routing.GetProperty("domainStrategy").GetString() == "IPOnDemand", "IP lookup occurs before catch-all");
@@ -155,6 +155,7 @@ if (xrayArgument >= 0 && xrayArgument + 1 < args.Length)
     passed += await CrashCleanupTests.TestJobAsync();
 }
 passed += await ServicesSupportTests.RunAsync();
+passed += await FeatureUpdateTests.RunAsync(args);
 passed += await FailoverTests.RunAsync();
 passed += await UpdateTests.RunAsync();
 int installerArgument = Array.IndexOf(args, "--installer-test");

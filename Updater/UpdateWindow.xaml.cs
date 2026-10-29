@@ -23,6 +23,7 @@ public partial class UpdateWindow : Window
         _mode = mode; _argument = argument;
         InitializeComponent();
         CheckButton.Content = Text("Проверить", "Check"); InstallButton.Content = Text("Обновить", "Update");
+        ChannelSelector.ItemsSource = new[] { Text("Стабильный", "Stable"), Text("Экспериментальный", "Experimental") }; ChannelSelector.SelectedIndex = 0;
         Loaded += async (_, _) =>
         {
             if (_mode == "--apply") await ApplyHandoffAsync();
@@ -45,7 +46,7 @@ public partial class UpdateWindow : Window
 
     private void SetBusy(bool busy)
     {
-        _busy = busy; CheckButton.IsEnabled = !busy; InstallButton.IsEnabled = !busy;
+        _busy = busy; CheckButton.IsEnabled = !busy; InstallButton.IsEnabled = !busy; ChannelSelector.IsEnabled = !busy;
         Progress.IsIndeterminate = busy; Progress.Value = 0;
     }
     private async void CheckClicked(object sender, RoutedEventArgs e) => await CheckAsync();
@@ -56,7 +57,7 @@ public partial class UpdateWindow : Window
         try
         {
             using var service = new UpdateService();
-            _release = await service.CheckAsync(_currentVersion, _lifetime.Token);
+            _release = await service.CheckAsync(_currentVersion, _lifetime.Token, ChannelSelector.SelectedIndex == 1);
             InstallButton.Visibility = _release is null ? Visibility.Collapsed : Visibility.Visible;
             StatusLabel.Text = _release is null ? Text("Установлена актуальная версия.", "You are up to date.") : Text("Доступна версия ", "Version available: ") + _release.Version;
         }
@@ -68,6 +69,7 @@ public partial class UpdateWindow : Window
     private async void InstallClicked(object sender, RoutedEventArgs e)
     {
         if (_busy || _release is null) return;
+        if (_release.IsExperimental && !ConfirmExperimental()) return;
         SetBusy(true);
         try
         {
@@ -76,7 +78,7 @@ public partial class UpdateWindow : Window
             StatusLabel.Text = Text("Загрузка обновления...", "Downloading update...");
             Progress.IsIndeterminate = false;
             string archive = await service.DownloadAsync(_release, directory, new Progress<double>(value => Progress.Value = value), _lifetime.Token);
-            await ApplyAsync(new(_target, archive, _release, 0, 0), directory, false);
+            await ApplyAsync(new(_target, archive, _release, 0, 0, _release.IsExperimental), directory, false);
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
         catch (InstallerException exception) { ShowInstallerError(exception); }
@@ -86,7 +88,7 @@ public partial class UpdateWindow : Window
 
     private async Task ApplyHandoffAsync()
     {
-        SetBusy(true); CheckButton.Visibility = Visibility.Collapsed;
+        SetBusy(true); CheckButton.Visibility = Visibility.Collapsed; ChannelSelector.Visibility = Visibility.Collapsed;
         try
         {
             string request = Path.GetFullPath(_argument);
@@ -108,6 +110,7 @@ public partial class UpdateWindow : Window
     private async Task ApplyAsync(UpdateHandoff handoff, string directory, bool signalParent)
     {
         UpdatePackage.ValidateTarget(handoff.TargetDirectory);
+        if (handoff.Release.IsExperimental && !handoff.ExperimentalConfirmed && !ConfirmExperimental()) throw new OperationCanceledException();
         if (_instance is null)
         {
             string identity = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Path.GetFullPath(handoff.TargetDirectory).TrimEnd(Path.DirectorySeparatorChar).ToUpperInvariant())));
@@ -156,4 +159,14 @@ public partial class UpdateWindow : Window
             : Text("Установщик не завершил обновление. Подробности в setup.log. Код: ", "The installer could not complete the update. See setup.log. Code: ") + exception.Code;
     }
     private void ClosingWindow(object? sender, CancelEventArgs e) { if (_installing) e.Cancel = true; }
+    private bool _changingChannel;
+    private bool ConfirmExperimental() => MessageBox.Show(this, Text("Экспериментальная версия может нарушать подключение и содержать ошибки. Продолжить? Версии старше 1.4 не читают зашифрованный профиль.", "Experimental versions may interrupt your connection and contain bugs. Continue? Versions before 1.4 cannot read encrypted profiles."), "Win10ray", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes;
+    private void ChannelChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_changingChannel || !IsLoaded) return;
+        if (ChannelSelector.SelectedIndex == 1 && !ConfirmExperimental())
+        { _changingChannel = true; ChannelSelector.SelectedIndex = 0; _changingChannel = false; return; }
+        _release = null; InstallButton.Visibility = Visibility.Collapsed;
+        _ = CheckAsync();
+    }
 }

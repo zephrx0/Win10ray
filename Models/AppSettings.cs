@@ -6,8 +6,15 @@ public sealed class AppSettings
     public bool UseTun { get; set; }
     public bool SendHwid { get; set; } = true;
     public bool CheckUpdatesOnStartup { get; set; } = true;
+    public bool ExperimentalUpdates { get; set; }
     public bool AutoSwitchServers { get; set; } = true;
     public bool BypassRussia { get; set; }
+    public bool BlockAds { get; set; } = true;
+    public bool DefaultRouteDirect { get; set; }
+    public System.Collections.Generic.List<ProcessRouteRule> ProcessRules { get; set; } = [];
+    public bool AutoUpdateSubscriptions { get; set; } = true;
+    public int SubscriptionUpdateHours { get; set; } = 12;
+    public bool SubscriptionsThroughConnection { get; set; } = true;
     public bool AutoStart { get; set; }
     public bool MinimizeToTray { get; set; } = true;
     public bool CloseToTray { get; set; } = true;

@@ -57,3 +57,7 @@ foreach ($name in $expected.Keys) {
     }
 }
 Write-Host 'Verified Xray-core and TUN components are ready.'
+$blockList = Get-Content -LiteralPath (Join-Path $repository 'Assets\Routing\ads.json') -Raw | ConvertFrom-Json
+if ((Get-FileHash -LiteralPath (Join-Path $repository 'xray\geosite.dat') -Algorithm SHA256).Hash -ne $blockList.geositeSha256) {
+    throw 'The embedded TUN block list does not match geosite.dat. Regenerate it with: dotnet run --project tests/GeoSiteExport'
+}

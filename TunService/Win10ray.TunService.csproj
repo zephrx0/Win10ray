@@ -14,6 +14,9 @@
     <AssemblyName>Win10ray.TunService</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="../Assets/Routing/ads.json" LogicalName="Win10ray.Routing.ads.json" />
+    <Compile Include="../Services/BlockList.cs" Link="BlockList.cs" />
+    <Compile Include="../Models/ProcessRouteRule.cs" Link="ProcessRouteRule.cs" />
     <Compile Include="../Services/TunConfigBuilder.cs" Link="TunConfigBuilder.cs" />
     <Compile Include="../Services/TunProtocol.cs" Link="TunProtocol.cs" />
     <Compile Include="../Services/TunInstallDiagnostics.cs" Link="TunInstallDiagnostics.cs" />

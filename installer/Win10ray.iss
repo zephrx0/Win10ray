@@ -1,5 +1,10 @@
 #ifndef AppVersion
-  #define AppVersion "1.3.2"
+  #define AppVersion "1.4.0"
+#endif
+#define NumericVersion AppVersion
+#if Pos("-", AppVersion) > 0
+  #undef NumericVersion
+  #define NumericVersion Copy(AppVersion, 1, Pos("-", AppVersion) - 1)
 #endif
 #ifndef PayloadDirectory
   #define PayloadDirectory AddBackslash(SourcePath) + "..\artifacts\Win10ray-" + AppVersion
@@ -40,7 +45,9 @@ SolidCompression=yes
 WizardStyle=modern
 VersionInfoDescription=Win10ray Setup
 VersionInfoProductName=Win10ray
-VersionInfoProductVersion={#AppVersion}
+VersionInfoVersion={#NumericVersion}
+VersionInfoProductVersion={#NumericVersion}
+VersionInfoProductTextVersion={#AppVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -51,6 +58,9 @@ Source: "{#PayloadDirectory}\Win10ray.exe"; DestDir: "{app}"; Flags: ignoreversi
 Source: "{#PayloadDirectory}\updater.exe"; DestDir: "{app}"; Flags: ignoreversion
 #ifndef TestBuild
 Source: "{#PayloadDirectory}\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDirectory}\docs\BUILD.md"; DestDir: "{app}\docs"; Flags: ignoreversion
+Source: "{#PayloadDirectory}\docs\licenses\QRCoder.txt"; DestDir: "{app}\docs\licenses"; Flags: ignoreversion
+Source: "{#PayloadDirectory}\Assets\Routing\LICENSE"; DestDir: "{app}\Assets\Routing"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\xray\xray.exe"; DestDir: "{app}\xray"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\xray\geoip.dat"; DestDir: "{app}\xray"; Flags: ignoreversion
 Source: "{#PayloadDirectory}\xray\geosite.dat"; DestDir: "{app}\xray"; Flags: ignoreversion

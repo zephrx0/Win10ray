@@ -50,20 +50,41 @@ public sealed class SettingsService
             if (!File.Exists(_file)) return new AppState();
             try
             {
-                await using FileStream stream = new(_file, FileMode.Open, FileAccess.Read, FileShare.Read, 8192, true);
-                AppState state = await JsonSerializer.DeserializeAsync<AppState>(stream, JsonOptions).ConfigureAwait(false)
-                    ?? throw new JsonException();
+                byte[] stored = await File.ReadAllBytesAsync(_file).ConfigureAwait(false);
+                bool encrypted = ProfileProtection.IsProtected(stored);
+                byte[] json = encrypted ? await Task.Run(() => ProfileProtection.Unprotect(stored)).ConfigureAwait(false) : stored;
+                AppState state;
+                try { state = JsonSerializer.Deserialize<AppState>(json, JsonOptions) ?? throw new JsonException(); }
+                finally { if (encrypted) System.Security.Cryptography.CryptographicOperations.ZeroMemory(json); }
                 state.Settings ??= new AppSettings();
                 state.Servers ??= [];
                 state.Subscriptions ??= [];
                 state.Servers.RemoveAll(server => server is null);
                 state.Subscriptions.RemoveAll(subscription => subscription is null);
                 ValidateState(state);
+                string backup = _file + ".bak";
+                string marker = backup + ".version";
+                if (!encrypted)
+                {
+                    // Keep a DPAPI-protected copy of the exact legacy bytes for one client version.
+                    byte[] protectedData = await Task.Run(() => ProfileProtection.Protect(stored)).ConfigureAwait(false);
+                    await WriteAtomicAsync(backup, protectedData).ConfigureAwait(false);
+                    await File.WriteAllTextAsync(marker, HardwareIdService.ClientVersion).ConfigureAwait(false);
+                    await WriteAtomicAsync(_file, protectedData).ConfigureAwait(false);
+                }
+                else if (File.Exists(marker) && await File.ReadAllTextAsync(marker).ConfigureAwait(false) != HardwareIdService.ClientVersion)
+                {
+                    ProfileProtection.RemoveBackup(backup); File.Delete(marker);
+                }
+                System.Security.Cryptography.CryptographicOperations.ZeroMemory(stored);
                 return state;
             }
             catch (JsonException)
             {
                 string backup = Path.Combine(_directory, $"settings.damaged-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}.json");
+                byte[] damaged = await File.ReadAllBytesAsync(_file).ConfigureAwait(false);
+                if (!ProfileProtection.IsProtected(damaged))
+                    await WriteAtomicAsync(_file, await Task.Run(() => ProfileProtection.Protect(damaged)).ConfigureAwait(false)).ConfigureAwait(false);
                 File.Move(_file, backup);
                 LoadWarning = LocalizationService.Pick("Файл настроек повреждён. Его копия сохранена в папке приложения; загружены настройки по умолчанию.", "Settings were damaged. A backup was saved and defaults have been loaded.");
                 return new AppState();
@@ -84,12 +105,11 @@ public sealed class SettingsService
     {
         byte[] snapshot = JsonSerializer.SerializeToUtf8Bytes(state, JsonOptions);
         await _gate.WaitAsync().ConfigureAwait(false);
-        string temporary = _file + ".tmp";
         try
         {
             await Task.Run(PrepareDirectory).ConfigureAwait(false);
-            await File.WriteAllBytesAsync(temporary, snapshot).ConfigureAwait(false);
-            File.Move(temporary, _file, true);
+            byte[] encrypted = await Task.Run(() => ProfileProtection.Protect(snapshot)).ConfigureAwait(false);
+            await WriteAtomicAsync(_file, encrypted).ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is UnauthorizedAccessException or SecurityException)
         {
@@ -102,11 +122,31 @@ public sealed class SettingsService
         finally
         {
             Array.Clear(snapshot);
-            try { if (File.Exists(temporary)) File.Delete(temporary); }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
             _gate.Release();
         }
+    }
+
+    public async Task ResetLockedProfileAsync()
+    {
+        await _gate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            if (File.Exists(_file)) File.Move(_file, _file + ".locked-" + Guid.NewGuid().ToString("N"));
+        }
+        finally { _gate.Release(); }
+    }
+
+    private static async Task WriteAtomicAsync(string path, byte[] data)
+    {
+        string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 8192, FileOptions.Asynchronous | FileOptions.WriteThrough))
+            { await stream.WriteAsync(data).ConfigureAwait(false); await stream.FlushAsync().ConfigureAwait(false); }
+            if (File.Exists(path)) File.Replace(temporary, path, null);
+            else File.Move(temporary, path);
+        }
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
 
     private void PrepareDirectory()
@@ -147,6 +187,11 @@ public sealed class SettingsService
         if (state.Settings.AccentColor is null || !Regex.IsMatch(state.Settings.AccentColor, "^#[0-9a-fA-F]{6}$"))
             state.Settings.AccentColor = "#0078D7";
         if (!DnsEndpoint.IsValid(state.Settings.DnsOverHttpsUrl)) state.Settings.DnsOverHttpsUrl = DnsEndpoint.Default;
+        if (state.Settings.SubscriptionUpdateHours is not (1 or 3 or 6 or 12 or 24)) state.Settings.SubscriptionUpdateHours = 12;
+        state.Settings.ProcessRules ??= [];
+        if (state.Settings.ProcessRules.Count > 32) throw new JsonException();
+        foreach (ProcessRouteRule rule in state.Settings.ProcessRules)
+            try { ProcessRouteRule.Validate(rule); } catch (ArgumentException) { throw new JsonException(); }
         state.Settings.UseSystemProxy = !state.Settings.UseTun;
     }
 }

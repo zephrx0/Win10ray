@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace XrayMetro.Services;
 
-public sealed record TunRequest(string Command, string? Token = null, bool UseDnsOverHttps = false, string? DnsOverHttpsUrl = null);
+public sealed record TunRequest(string Command, string? Token = null, bool UseDnsOverHttps = false, string? DnsOverHttpsUrl = null, bool BlockAds = true, Models.ProcessRouteRule[]? ProcessRules = null, bool DefaultRouteDirect = false);
 public sealed record TunResponse(bool Ok, bool Running = false, string Code = "", string? Token = null, string[]? Logs = null, int ProtocolVersion = 0);
 
 public static class TunProtocol
 {
     public const string ServiceName = "Win10ray.Tun";
     public const string PipeName = "Win10ray.Tun.v1";
-    public const int MaximumFrame = 32768;
-    public const int CurrentVersion = 5;
+    public const int MaximumFrame = 262144;
+    public const int CurrentVersion = 6;
     // Wintun itself can wait 15 seconds for PnP. Outer deadlines include cleanup and IPC.
     public const int AdapterStartSeconds = 35;
     public const int ServiceRequestSeconds = 45;

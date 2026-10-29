@@ -125,7 +125,7 @@ internal static class ViewModelConnectionTests
         public bool Running { get; private set; }
         public bool Stall { get; set; }
         public Task PrepareAsync(CancellationToken token) { token.ThrowIfCancellationRequested(); return Task.CompletedTask; }
-        public async Task StartAsync(CancellationToken token, bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null)
+        public async Task StartAsync(CancellationToken token, bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null, bool blockAds = true, ProcessRouteRule[]? processRules = null, bool defaultRouteDirect = false)
         {
             Starts++;
             if (Failures-- > 0) throw TunServiceClient.Failure("adapter_timeout");

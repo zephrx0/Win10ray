@@ -33,6 +33,7 @@ public sealed class XrayProcessService : IDisposable
     private CancellationTokenSource? _sessionCancellation;
     private Task[] _readers = [];
     private bool _stopping;
+    private bool _usesProcessOverride;
     private volatile bool _disposed;
     private LogSanitizer _sanitizer = new([]);
 
@@ -106,11 +107,17 @@ public sealed class XrayProcessService : IDisposable
             ObjectDisposedException.ThrowIf(_disposed, this);
             await StopCoreAsync().ConfigureAwait(false);
             _sanitizer = new LogSanitizer(secrets);
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(configJson);
+                _usesProcessOverride = document.RootElement.GetProperty("inbounds").EnumerateArray().Any(inbound => inbound.TryGetProperty("tag", out JsonElement tag) && tag.GetString() == "process-override");
+            }
+            catch (JsonException) { throw new InvalidOperationException(LocalizationService.Pick("Некорректная конфигурация Xray.", "Invalid Xray configuration.")); }
             ExecutablePath = LocateExecutable();
             string assets = Path.GetDirectoryName(ExecutablePath)!;
             if (requireGeoData && (!File.Exists(Path.Combine(assets, "geoip.dat")) || !File.Exists(Path.Combine(assets, "geosite.dat"))))
                 throw new InvalidOperationException(LocalizationService.Pick("Для маршрутизации России нужны geoip.dat и geosite.dat рядом с xray.exe.", "Russian routing requires geoip.dat and geosite.dat next to xray.exe."));
-            await CheckPortsAsync(cancellationToken).ConfigureAwait(false);
+            await CheckPortsAsync(cancellationToken, _usesProcessOverride).ConfigureAwait(false);
             await Task.Run(PrepareRuntimeDirectory, cancellationToken).ConfigureAwait(false);
             string configPath = Path.Combine(_runtimeDirectory, "config.json");
             await File.WriteAllTextAsync(configPath, configJson, new UTF8Encoding(false), cancellationToken).ConfigureAwait(false);
@@ -240,9 +247,9 @@ public sealed class XrayProcessService : IDisposable
         return locations.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException(LocalizationService.Pick("xray.exe не найден. Поместите ядро в папку xray рядом с Win10ray.exe.", "xray.exe was not found. Place the core in the xray folder next to Win10ray.exe."));
     }
 
-    private Task CheckPortsAsync(CancellationToken cancellationToken) => Task.Run(() =>
+    private Task CheckPortsAsync(CancellationToken cancellationToken, bool processOverride = false) => Task.Run(() =>
     {
-        foreach (int port in new[] { SocksPort, HttpPort, ApiPort })
+        foreach (int port in new[] { SocksPort, HttpPort, ApiPort }.Concat(processOverride ? [10810] : Array.Empty<int>()))
         {
             cancellationToken.ThrowIfCancellationRequested();
             var listener = new TcpListener(IPAddress.Loopback, port);
@@ -261,7 +268,7 @@ public sealed class XrayProcessService : IDisposable
 
     private async Task WaitForPortsAsync(Process process, CancellationToken cancellationToken)
     {
-        foreach (int port in new[] { SocksPort, HttpPort, ApiPort })
+        foreach (int port in new[] { SocksPort, HttpPort, ApiPort }.Concat(_usesProcessOverride ? [10810] : Array.Empty<int>()))
         {
             while (true)
             {

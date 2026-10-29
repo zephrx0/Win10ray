@@ -18,10 +18,10 @@ using XrayMetro.Services;
 
 namespace XrayMetro.ViewModels;
 
-public sealed class MainViewModel : ObservableObject
+public sealed partial class MainViewModel : ObservableObject
 {
     private readonly SettingsService _settingsService;
-    private readonly SubscriptionService _subscriptions = new();
+    private readonly SubscriptionService _subscriptions;
     private readonly AutoStartService _autoStart = new();
     private readonly XrayProcessService _core;
     private readonly ISystemProxyService _proxy;
@@ -60,6 +60,7 @@ public sealed class MainViewModel : ObservableObject
     public MainViewModel(AppState state, SettingsService settingsService, XrayProcessService core, ISystemProxyService proxy, ServerHealthService? health = null, TimeSpan? healthInterval = null, ITunSessionService? tun = null)
     {
         _state = state; _settingsService = settingsService; _core = core; _proxy = proxy;
+        _subscriptions = new SubscriptionService(core.HttpPort);
         _health = health ?? new ServerHealthService();
         _tun = tun ?? new TunServiceClient();
         _healthInterval = healthInterval ?? TimeSpan.FromSeconds(15);
@@ -78,19 +79,21 @@ public sealed class MainViewModel : ObservableObject
         CancelConnectionCommand = new(_ => { _state.Settings.ResumeConnection = false; _connectCancellation?.Cancel(); _startupCancellation?.Cancel(); Persist(); }, _ => IsBusy && (_connectCancellation is not null || _startupCancellation is not null));
         StartRenameCommand = new(_ => IsRenaming = true, _ => CanEditConnection && SelectedServer is not null);
         CancelRenameCommand = new(_ => { IsRenaming = false; RenameText = SelectedServer?.Name ?? ""; });
-        ToggleConnectionCommand = new(_ => ToggleConnectionAsync(), ReportError, _ => !IsBusy && (IsConnected || SelectedServer is not null));
+        ToggleConnectionCommand = new(_ => ToggleConnectionAsync(), ReportError, _ => !IsBusy && !IsRefreshingSubscriptions && (IsConnected || SelectedServer is not null));
         ImportClipboardCommand = new(_ => ImportClipboardAsync(), ReportError, _ => CanEditConnection);
         PingAllCommand = new(_ => PingAllAsync(), ReportError, _ => Servers.Count > 0);
         DeleteServerCommand = new(_ => DeleteServerAsync(), ReportError, _ => CanEditConnection && SelectedServer is not null);
         RenameServerCommand = new(_ => RenameServerAsync(), ReportError, _ => CanEditConnection && SelectedServer is not null);
         AddSubscriptionCommand = new(_ => AddSubscriptionAsync(), ReportError, _ => CanEditConnection);
-        UpdateSubscriptionsCommand = new(_ => UpdateSubscriptionsAsync(), ReportError, _ => CanEditConnection && Subscriptions.Count > 0);
+        UpdateSubscriptionsCommand = new(_ => RefreshSubscriptionsAsync(null, false), ReportError, _ => !IsRefreshingSubscriptions && !IsBusy && !_closing && Subscriptions.Count > 0);
+        UpdateSubscriptionCommand = new(p => RefreshSubscriptionsAsync(p as SubscriptionProfile, false), ReportError, p => p is SubscriptionProfile s && !s.IsUpdating && !IsRefreshingSubscriptions && !IsBusy && !_closing);
         DeleteSubscriptionCommand = new(_ => DeleteSubscriptionAsync(), ReportError, _ => CanEditConnection && SelectedSubscription is not null);
         CopyLogsCommand = new(_ => { try { Clipboard.SetText(Logs); Message = LocalizationService.Pick("Логи скопированы", "Copied"); } catch { Message = LocalizationService.Pick("Буфер обмена занят. Повторите копирование.", "Clipboard is busy. Try again."); } });
         ClearLogsCommand = new(parameter => { _logLines.Clear(); while (_pendingLogs.TryDequeue(out _)) { } Logs = ""; });
         DismissMessageCommand = new(_ => Message = "");
         CheckClientUpdatesCommand = new(_ => CheckClientUpdatesAsync(), ReportError, _ => !IsUpdating && !_closing);
         InstallClientUpdateCommand = new(_ => InstallClientUpdateAsync(), ReportError, _ => !IsUpdating && !IsBusy && !_closing && HasClientUpdate);
+        ShowQrCommand = new(p => Views.QrWindow.ShowAsync(p is SubscriptionProfile subscription ? subscription.Url : p is ServerProfile server ? ShareLinkExporter.Export(server) : ""), ReportError, p => p is SubscriptionProfile or ServerProfile);
         _core.LogReceived += EnqueueLog;
         _core.UnexpectedExit += OnCoreExit;
         _tun.LogReceived += EnqueueLog;
@@ -98,6 +101,8 @@ public sealed class MainViewModel : ObservableObject
         _logTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(200), DispatcherPriority.Background, (_, _) => DrainLogs(), Application.Current.Dispatcher);
         _logTimer.Start();
         if (!string.IsNullOrEmpty(settingsService.LoadWarning)) Message = settingsService.LoadWarning;
+        InitializeSubscriptionScheduler();
+        InitializeProcessRouting();
     }
 
     public ObservableCollection<ServerProfile> Servers { get; }
@@ -109,11 +114,26 @@ public sealed class MainViewModel : ObservableObject
     public string CoreVersion { get => _coreVersion; private set => Set(ref _coreVersion, value); }
     public AsyncCommand CheckClientUpdatesCommand { get; }
     public AsyncCommand InstallClientUpdateCommand { get; }
+    public AsyncCommand ShowQrCommand { get; }
     public bool IsUpdating { get => _isUpdating; private set { if (Set(ref _isUpdating, value)) { CheckClientUpdatesCommand.Notify(); InstallClientUpdateCommand.Notify(); } } }
     public double UpdateProgress { get => _updateProgress; private set => Set(ref _updateProgress, value); }
     public string UpdateStatus { get => _updateStatus; private set => Set(ref _updateStatus, value); }
     public bool HasClientUpdate => _clientRelease is not null;
     public bool CheckUpdatesOnStartup { get => _state.Settings.CheckUpdatesOnStartup; set { _state.Settings.CheckUpdatesOnStartup = value; OnPropertyChanged(); Persist(); } }
+    public string[] UpdateChannels { get; } = [LocalizationService.Get("StableChannel"), LocalizationService.Get("ExperimentalChannel")];
+    public int UpdateChannelIndex
+    {
+        get => _state.Settings.ExperimentalUpdates ? 1 : 0;
+        set
+        {
+            if (value is < 0 or > 1 || value == UpdateChannelIndex) return;
+            if (IsUpdating || value == 1 && MessageBox.Show(LocalizationService.Get("ExperimentalWarning"), "Win10ray", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+            { OnPropertyChanged(); return; }
+            _state.Settings.ExperimentalUpdates = value == 1;
+            _clientRelease = null; OnPropertyChanged(); OnPropertyChanged(nameof(HasClientUpdate)); InstallClientUpdateCommand.Notify(); Persist();
+            _ = CheckClientUpdatesAsync();
+        }
+    }
     public RelayCommand SelectServersTabCommand { get; }
     public RelayCommand CancelConnectionCommand { get; }
     public RelayCommand StartRenameCommand { get; }
@@ -152,7 +172,7 @@ public sealed class MainViewModel : ObservableObject
     public bool IsConnected { get => _isConnected; private set { if (Set(ref _isConnected, value)) StateChanged(); } }
     public bool IsBusy { get => _isBusy; private set { if (Set(ref _isBusy, value)) StateChanged(); } }
     public bool IsIdle => !IsBusy;
-    public bool CanEditConnection => !IsConnected && !IsBusy && !_closing;
+    public bool CanEditConnection => !IsConnected && !IsBusy && !IsRefreshingSubscriptions && !_closing;
     public string ConnectionButtonText => LocalizationService.Get(IsBusy ? _connectCancellation is not null || _startupCancellation is not null ? "Cancel" : IsConnected ? "Disconnecting" : "Connecting" : IsConnected ? "Disconnect" : "Connect");
     public string[] ThemeChoices { get; } = [LocalizationService.Get("Dark"), LocalizationService.Get("Light")];
     public int ThemeIndex { get => DarkTheme ? 0 : 1; set { if (value is 0 or 1) DarkTheme = value == 0; } }
@@ -165,7 +185,7 @@ public sealed class MainViewModel : ObservableObject
             if (!CanEditConnection || value is < 0 or > 1) return;
             _state.Settings.UseTun = value == 1;
             _state.Settings.UseSystemProxy = value == 0;
-            OnPropertyChanged(); OnPropertyChanged(nameof(UseSystemProxy)); OnPropertyChanged(nameof(UseTun)); Persist();
+            OnPropertyChanged(); OnPropertyChanged(nameof(UseSystemProxy)); OnPropertyChanged(nameof(UseTun)); OnPropertyChanged(nameof(CanEditProcessRules)); NotifyCommands(); Persist();
         }
     }
     public bool UseTun { get => _state.Settings.UseTun; set { if (CanEditConnection) ConnectionModeIndex = value ? 1 : 0; } }
@@ -184,6 +204,7 @@ public sealed class MainViewModel : ObservableObject
     public string RenameText { get => _renameText; set => Set(ref _renameText, value); }
     public string SubscriptionUrl { get => _subscriptionUrl; set => Set(ref _subscriptionUrl, value); }
     public bool UseSystemProxy { get => _state.Settings.UseSystemProxy; set { if (CanEditConnection) ConnectionModeIndex = value ? 0 : 1; } }
+    public bool BlockAds { get => _state.Settings.BlockAds; set { if (!CanEditConnection) return; _state.Settings.BlockAds = value; OnPropertyChanged(); Persist(); } }
     public bool BypassRussia { get => _state.Settings.BypassRussia; set { if (!CanEditConnection) return; _state.Settings.BypassRussia = value; OnPropertyChanged(); Persist(); } }
     public bool MinimizeToTray { get => _state.Settings.MinimizeToTray; set { _state.Settings.MinimizeToTray = value; OnPropertyChanged(); Persist(); } }
     public bool CloseToTray { get => _state.Settings.CloseToTray; set { _state.Settings.CloseToTray = value; OnPropertyChanged(); Persist(); } }
@@ -213,6 +234,7 @@ public sealed class MainViewModel : ObservableObject
         catch (Exception exception) { ReportError(exception); }
         await RestoreConnectionAsync();
         await version;
+        if (AutoUpdateSubscriptions && !_closing) _ = RefreshSubscriptionsAsync(null, true, true);
         if (CheckUpdatesOnStartup && !_closing) _ = CheckClientUpdatesAsync(silent: true);
     }
 
@@ -223,8 +245,9 @@ public sealed class MainViewModel : ObservableObject
         try
         {
             using var service = new UpdateService();
-            _clientRelease = await service.CheckAsync(ClientVersion, _lifetime.Token);
+            _clientRelease = await service.CheckAsync(ClientVersion, _lifetime.Token, _state.Settings.ExperimentalUpdates);
             OnPropertyChanged(nameof(HasClientUpdate));
+            InstallClientUpdateCommand.Notify();
             UpdateStatus = _clientRelease is null ? LocalizationService.Get("ClientUpToDate") : LocalizationService.Get("ClientUpdateAvailable") + _clientRelease.Version;
             if (silent && _clientRelease is not null) Message = UpdateStatus;
         }
@@ -236,6 +259,7 @@ public sealed class MainViewModel : ObservableObject
     private async Task InstallClientUpdateAsync()
     {
         if (_clientRelease is null || IsUpdating || _closing) return;
+        if (_clientRelease.IsExperimental && MessageBox.Show(LocalizationService.Get("ExperimentalInstallWarning"), "Win10ray", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
         IsUpdating = true; UpdateProgress = 0; UpdateStatus = LocalizationService.Get("ClientUpdateDownload");
         try
         {
@@ -296,9 +320,12 @@ public sealed class MainViewModel : ObservableObject
     private void NotifyCommands()
     {
         CheckClientUpdatesCommand?.Notify(); InstallClientUpdateCommand?.Notify();
+        OnPropertyChanged(nameof(CanEditConnection));
+        OnPropertyChanged(nameof(CanEditProcessRules));
+        AddProcessRuleCommand?.Notify(); DeleteProcessRuleCommand?.Notify(); BrowseProcessCommand?.Notify(); SelectRunningProcessCommand?.Notify();
         ToggleConnectionCommand?.Notify(); ImportClipboardCommand?.Notify(); PingAllCommand?.Notify();
         DeleteServerCommand?.Notify(); RenameServerCommand?.Notify(); AddSubscriptionCommand?.Notify();
-        UpdateSubscriptionsCommand?.Notify(); DeleteSubscriptionCommand?.Notify();
+        UpdateSubscriptionsCommand?.Notify(); UpdateSubscriptionCommand?.Notify(); DeleteSubscriptionCommand?.Notify();
         StartRenameCommand?.Notify();
     }
     private async Task ChangeAutoStartAsync(bool enabled, int version)
@@ -363,7 +390,7 @@ public sealed class MainViewModel : ObservableObject
     private async Task ConnectAvailableAsync(ServerProfile server, bool skipCurrent, CancellationToken token)
     {
         if (HasDnsError) throw new InvalidOperationException(LocalizationService.Get("InvalidDoh"));
-        await _core.CheckEnvironmentAsync(BypassRussia, token);
+        await _core.CheckEnvironmentAsync(BypassRussia || BlockAds, token);
         if (UseTun)
         {
             StatusDetail = LocalizationService.Get("PreparingTun");
@@ -403,7 +430,7 @@ public sealed class MainViewModel : ObservableObject
                 }
                 string config = await Task.Run(() => new XrayConfigBuilder().Build(candidate, _state.Settings, _core.ApiPort, _core.SocksPort, _core.HttpPort, endpoint), cancellation);
                 var startup = Stopwatch.StartNew();
-                await _core.StartAsync(config, Secrets(candidate).Append(DnsOverHttpsUrl), BypassRussia, cancellation);
+                await _core.StartAsync(config, Secrets(candidate).Append(DnsOverHttpsUrl), BypassRussia || BlockAds, cancellation);
                 EnqueueLog($"Xray ready: {startup.ElapsedMilliseconds} ms.");
                 if (autoSwitch && !await _health.CheckTunnelAsync(_core.HttpPort, cancellation))
                 {
@@ -421,7 +448,7 @@ public sealed class MainViewModel : ObservableObject
             finally { if (!ready) await _core.StopAsync(); }
         }, token);
         token.ThrowIfCancellationRequested();
-        if (UseTun) await _tun.StartAsync(token, UseDnsOverHttps, DnsOverHttpsUrl);
+        if (UseTun) await _tun.StartAsync(token, UseDnsOverHttps, DnsOverHttpsUrl, BlockAds, ProcessRules.ToArray(), DefaultRouteDirect);
         else await Task.Run(_proxy.Enable, token);
         if (!_core.IsRunning) throw new InvalidOperationException(LocalizationService.Pick("Ядро Xray остановилось во время подключения.", "Xray stopped during connection."));
         available.PingFailed = false;
@@ -618,7 +645,7 @@ public sealed class MainViewModel : ObservableObject
         if (SelectedServer is null) return;
         string name = RenameText.Trim();
         if (name.Length is < 1 or > 100) throw new InvalidOperationException(LocalizationService.Pick("Название должно содержать от 1 до 100 символов.", "Name must contain 1 to 100 characters."));
-        SelectedServer.Name = name; IsRenaming = false; ServerView.Refresh(); await SaveAsync(); Message = LocalizationService.Pick("Название сохранено", "Saved");
+        SelectedServer.Name = name; SelectedServer.HasCustomName = true; IsRenaming = false; ServerView.Refresh(); await SaveAsync(); Message = LocalizationService.Pick("Название сохранено", "Saved");
     }
     private void RefreshServers()
     {
@@ -636,7 +663,7 @@ public sealed class MainViewModel : ObservableObject
     {
         string url = SubscriptionUrl.Trim();
         if (Subscriptions.Any(s => s.Url == url)) throw new InvalidOperationException(LocalizationService.Pick("Эта подписка уже добавлена.", "Subscription already exists."));
-        ImportResult result = await _subscriptions.FetchAsync(url, _lifetime.Token, SendHwid);
+        ImportResult result = await _subscriptions.FetchAsync(url, _lifetime.Token, SendHwid, SubscriptionsThroughConnection && IsConnected);
         if (!CanEditConnection) return;
         if (result.Profiles.Count == 0) throw new InvalidOperationException(LocalizationService.Pick("Подписка не содержит поддерживаемых серверов.", "No supported servers in this subscription."));
         var subscription = new SubscriptionProfile { Url = url, Name = new Uri(url).Host, UpdatedAt = DateTimeOffset.Now };
@@ -644,25 +671,6 @@ public sealed class MainViewModel : ObservableObject
         SelectedSubscription = subscription; SubscriptionUrl = "";
         RefreshServers(); await SaveAsync();
         Message = LocalizationService.Pick($"Добавлено: {result.Profiles.Count}. Отклонено: {result.Errors.Count}.", $"Added: {result.Profiles.Count}. Rejected: {result.Errors.Count}.");
-    }
-    private async Task UpdateSubscriptionsAsync()
-    {
-        int updated = 0, failed = 0, rejected = 0;
-        foreach (SubscriptionProfile subscription in Subscriptions.ToArray())
-        {
-            try
-            {
-                ImportResult result = await _subscriptions.FetchAsync(subscription.Url, _lifetime.Token, SendHwid);
-                if (!CanEditConnection) return;
-                if (!Subscriptions.Contains(subscription)) continue;
-                if (result.Profiles.Count == 0) { failed++; continue; }
-                ApplySubscription(subscription, result.Profiles); updated++; rejected += result.Errors.Count;
-            }
-            catch (OperationCanceledException) { throw; }
-            catch { failed++; }
-        }
-        RefreshServers(); await SaveAsync();
-        Message = LocalizationService.Pick($"Обновлено: {updated}. Ошибок: {failed}. Отклонено: {rejected}.", $"Updated: {updated}. Failed: {failed}. Rejected: {rejected}.");
     }
     private void ApplySubscription(SubscriptionProfile subscription, IReadOnlyList<ServerProfile> incoming)
     {
@@ -674,11 +682,16 @@ public sealed class MainViewModel : ObservableObject
             server.FlagCode = CountryFlagService.CountryCode(server.Name);
             ServerProfile? previous = old.FirstOrDefault(s => s.SourceKey == server.SourceKey);
             server.SubscriptionId = subscription.Id;
-            if (previous is not null) { server.Id = previous.Id; server.Name = previous.Name; }
-            Servers.Add(server);
+            if (previous is not null)
+            {
+                previous.FlagCode = server.FlagCode;
+                if (!previous.HasCustomName) previous.Name = server.Name;
+                Servers.Add(previous);
+            }
+            else Servers.Add(server);
         }
         subscription.UpdatedAt = DateTimeOffset.Now;
-        SelectedServer = Servers.FirstOrDefault(s => s.Id == selectedId) ?? Servers.FirstOrDefault();
+        if (!IsConnected) SelectedServer = Servers.FirstOrDefault(s => s.Id == selectedId) ?? Servers.FirstOrDefault();
     }
     private async Task DeleteSubscriptionAsync()
     {
@@ -709,6 +722,8 @@ public sealed class MainViewModel : ObservableObject
     public async Task ShutdownAsync()
     {
         _closing = true; _lifetime.Cancel(); NotifyCommands();
+        StopSubscriptionScheduler();
+        if (_subscriptionTask is not null) await _subscriptionTask;
         await _connectionGate.WaitAsync();
         try { await DisconnectAfterFailureAsync(); await _autoStartGate.WaitAsync(); _autoStartGate.Release(); await SaveAsync(); }
         finally

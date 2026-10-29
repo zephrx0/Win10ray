@@ -25,7 +25,7 @@ public static class UpdateLauncher
             string executable = Path.Combine(directory, "updater.exe");
             await Task.Run(() => File.Copy(updater, executable), token).ConfigureAwait(false);
             using Process parent = Process.GetCurrentProcess();
-            var handoff = new UpdateHandoff(AppContext.BaseDirectory, archive, release, parent.Id, parent.StartTime.ToUniversalTime().Ticks);
+            var handoff = new UpdateHandoff(AppContext.BaseDirectory, archive, release, parent.Id, parent.StartTime.ToUniversalTime().Ticks, release.IsExperimental);
             string request = Path.Combine(directory, "handoff.json");
             await File.WriteAllTextAsync(request, JsonSerializer.Serialize(handoff), token).ConfigureAwait(false);
             var info = new ProcessStartInfo(executable) { UseShellExecute = false, WorkingDirectory = directory };

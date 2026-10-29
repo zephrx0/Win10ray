@@ -172,7 +172,7 @@ internal static class UiSmokeTests
                     vm.DnsOverHttpsUrl = DnsEndpoint.Default;
                     if (vm.HasDnsError) throw new InvalidOperationException("Valid DNS endpoint was rejected.");
                     await Task.Delay(240);
-                    if (!((TextBox)window.FindName("DohUrlBox")).IsVisible) throw new InvalidOperationException("DoH endpoint field did not appear.");
+                    if (!Descendants<TextBox>(window).Single(box => box.Name == "DohUrlBox").IsVisible) throw new InvalidOperationException("DoH endpoint field did not appear.");
                     vm.UseDnsOverHttps = false;
                     checks += 3;
                     vm.SelectedPage = 0; vm.DarkTheme = true;
@@ -204,6 +204,18 @@ internal static class UiSmokeTests
                     vm.CloseToTray = false; window.Close();
                     if (exits != 1) throw new InvalidOperationException("Closing without close-to-tray must request exit.");
                     vm.CloseToTray = true; checks += 5;
+                    vm.UseTun = true;
+                    vm.ProcessInput = "browser.exe"; vm.ProcessAction = ProcessRouteAction.Proxy; vm.AddProcessRuleCommand.Execute(null);
+                    if(vm.ProcessRules.Count != 1 || !vm.CanEditProcessRules) throw new InvalidOperationException("Application rule could not be added in TUN.");
+                    vm.UseTun = false;
+                    if(vm.CanEditProcessRules || vm.AddProcessRuleCommand.CanExecute(null)) throw new InvalidOperationException("Application routing must be disabled in system proxy mode.");
+                    Guid group = Guid.NewGuid();
+                    ServerProfile preserved = vm.Servers[0]; preserved.SubscriptionId = group; preserved.HasCustomName = true; preserved.Name = "My custom name";
+                    var providerProfile = parser.Parse($"vless://{id}@example.com:443?security=tls#Provider%20rename");
+                    var apply = typeof(MainViewModel).GetMethod("ApplySubscription",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+                    apply.Invoke(vm,[new SubscriptionProfile{Id=group,Url="https://example.com/test"},new[]{providerProfile}]);
+                    if(!vm.Servers.Contains(preserved) || preserved.Name != "My custom name" || vm.SelectedServer != preserved)throw new InvalidOperationException("Subscription refresh lost the selection or custom name.");
+                    checks += 3;
                     vm.Servers.Clear(); vm.SelectedServer = null; vm.SelectedPage = 0;
                     if (vm.ToggleConnectionCommand.CanExecute(null)) throw new InvalidOperationException("Connecting without a server was allowed.");
                     await Task.Delay(240);

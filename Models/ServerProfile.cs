@@ -20,7 +20,9 @@ public sealed class ServerProfile : ObservableObject
         get => _name;
         set { if (Set(ref _name, value)) { OnPropertyChanged(nameof(DisplayName)); OnPropertyChanged(nameof(FlagImage)); OnPropertyChanged(nameof(HasFlag)); } }
     }
-    public string FlagCode { get; set; } = "";
+    private string _flagCode = "";
+    public string FlagCode { get => _flagCode; set { if (Set(ref _flagCode, value)) { OnPropertyChanged(nameof(FlagImage)); OnPropertyChanged(nameof(HasFlag)); } } }
+    public bool HasCustomName { get; set; } = true;
     [JsonIgnore] public string DisplayName => CountryFlagService.DisplayName(Name);
     [JsonIgnore] public System.Windows.Media.ImageSource? FlagImage => CountryFlagService.Image(string.IsNullOrEmpty(FlagCode) ? CountryFlagService.CountryCode(Name) : FlagCode);
     [JsonIgnore] public bool HasFlag => FlagImage is not null;

@@ -21,6 +21,10 @@ public sealed class XrayConfigBuilder
         if (apiPort is < 1 or > 65535 || socksPort is < 1 or > 65535 || httpPort is < 1 or > 65535 ||
             apiPort == socksPort || apiPort == httpPort || socksPort == httpPort) throw new ArgumentOutOfRangeException(nameof(apiPort));
         JsonArray rules = [];
+        bool processProxy = settings.UseTun && settings.ProcessRules.Any(rule => rule.Action == ProcessRouteAction.Proxy);
+        if (processProxy) rules.Add(new JsonObject { ["type"] = "field", ["inboundTag"] = Strings("process-override"), ["outboundTag"] = "proxy" });
+        if (settings.BlockAds)
+            rules.Add(new JsonObject { ["type"] = "field", ["domain"] = Strings("geosite:category-ads-all", "geosite:category-ads-and-telemetry"), ["outboundTag"] = "block" });
         if (settings.BypassRussia)
         {
             rules.Add(new JsonObject { ["type"] = "field", ["domain"] = Strings("geosite:category-ru"), ["outboundTag"] = "direct" });
@@ -46,11 +50,17 @@ public sealed class XrayConfigBuilder
             ["outbounds"] = new JsonArray
             {
                 new JsonObject { ["tag"] = "proxy", ["protocol"] = server.Protocol, ["settings"] = ProtocolSettings(server, resolvedServerAddress ?? server.Host), ["streamSettings"] = StreamSettings(server, resolvedServerAddress is not null) },
-                new JsonObject { ["tag"] = "direct", ["protocol"] = "freedom", ["settings"] = new JsonObject() }
+                new JsonObject { ["tag"] = "direct", ["protocol"] = "freedom", ["settings"] = new JsonObject() },
+                new JsonObject { ["tag"] = "block", ["protocol"] = "blackhole", ["settings"] = new JsonObject() }
             },
             // Resolve before the geoip rule; IPIfNonMatch would be bypassed by the final catch-all.
             ["routing"] = new JsonObject { ["domainStrategy"] = settings.BypassRussia ? "IPOnDemand" : "AsIs", ["rules"] = rules }
         };
+        if (processProxy)
+        {
+            if (new[] { apiPort, socksPort, httpPort }.Contains(10810)) throw new ArgumentException("Process override port collision.");
+            ((JsonArray)config["inbounds"]!).Add(Inbound("process-override", "socks", 10810, new JsonObject { ["auth"] = "noauth", ["udp"] = true, ["ip"] = "127.0.0.1" }));
+        }
         return config.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
     }
 

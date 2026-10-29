@@ -1,0 +1,3650 @@
+{
+  "source": "v2fly/domain-list-community",
+  "geositeSha256": "ef725a08ba804effd5b5b6e747c8c28eabc54ed068d786d7366d067d2e1a3849",
+  "tags": [
+    "category-ads-all",
+    "category-ads-and-telemetry"
+  ],
+  "domains": [
+    {
+      "type": 1,
+      "value": "^speed\\.(coe|open)\\.ad\\.[a-z]{2,6}\\.prod\\.hosts\\.ooklaserver\\.net$"
+    },
+    {
+      "type": 2,
+      "value": "1rx.io"
+    },
+    {
+      "type": 2,
+      "value": "2mdn-cn.net"
+    },
+    {
+      "type": 2,
+      "value": "2mdn.net"
+    },
+    {
+      "type": 2,
+      "value": "51.la"
+    },
+    {
+      "type": 2,
+      "value": "51y5.net"
+    },
+    {
+      "type": 2,
+      "value": "7box.vip"
+    },
+    {
+      "type": 2,
+      "value": "a.adtng.com"
+    },
+    {
+      "type": 2,
+      "value": "a.alimama.cn"
+    },
+    {
+      "type": 2,
+      "value": "a.market.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "a.mts.ru"
+    },
+    {
+      "type": 2,
+      "value": "a.youdao.com"
+    },
+    {
+      "type": 2,
+      "value": "aaid.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "aaxads.com"
+    },
+    {
+      "type": 2,
+      "value": "acjs.aliyun.com"
+    },
+    {
+      "type": 2,
+      "value": "ad-delivery.net"
+    },
+    {
+      "type": 2,
+      "value": "ad-srv.net"
+    },
+    {
+      "type": 2,
+      "value": "ad.12306.cn"
+    },
+    {
+      "type": 2,
+      "value": "ad.api.3g.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.api.mobile.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.api.moji.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.browser.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.cctv.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.games.dmm.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.hpplay.cn"
+    },
+    {
+      "type": 2,
+      "value": "ad.intl.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.m.iqiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.mail.ru"
+    },
+    {
+      "type": 2,
+      "value": "ad.mi.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.mobile.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.qun.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.sina.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "ad.tencentmusic.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.toutiao.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.us.sinaimg.cn"
+    },
+    {
+      "type": 2,
+      "value": "ad.wang502.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.weixin.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "ad.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "ad1.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "adash-c.m.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adash-c.ut.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adash-emas.cn-hangzhou.aliyuncs.com"
+    },
+    {
+      "type": 2,
+      "value": "adash.m.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adash.man.aliyuncs.com"
+    },
+    {
+      "type": 2,
+      "value": "adashbc.m.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adashbc.ut.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adashx.m.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adashx.ut.amap.com"
+    },
+    {
+      "type": 2,
+      "value": "adashx.ut.ele.me"
+    },
+    {
+      "type": 2,
+      "value": "adashx.ut.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "adashx4ae.ut.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adashx4yt.m.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adashxgc.ut.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adbehavior.ximalaya.com"
+    },
+    {
+      "type": 2,
+      "value": "adbkwai.com"
+    },
+    {
+      "type": 2,
+      "value": "adbox.sina.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "adbutter.net"
+    },
+    {
+      "type": 2,
+      "value": "adc.hpplay.cn"
+    },
+    {
+      "type": 2,
+      "value": "adcolony.com"
+    },
+    {
+      "type": 2,
+      "value": "addthis.com"
+    },
+    {
+      "type": 2,
+      "value": "addthiscdn.com"
+    },
+    {
+      "type": 2,
+      "value": "addthisedge.com"
+    },
+    {
+      "type": 2,
+      "value": "adeng.hpplay.cn"
+    },
+    {
+      "type": 2,
+      "value": "adfilter.imtt.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adfox.ru"
+    },
+    {
+      "type": 2,
+      "value": "adfox.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "adimg.mobile.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "adimg.uve.weibo.com"
+    },
+    {
+      "type": 2,
+      "value": "adinplay.com"
+    },
+    {
+      "type": 2,
+      "value": "adivery.com"
+    },
+    {
+      "type": 2,
+      "value": "adivery.ir"
+    },
+    {
+      "type": 2,
+      "value": "adjust.com"
+    },
+    {
+      "type": 2,
+      "value": "adjust.io"
+    },
+    {
+      "type": 2,
+      "value": "adjust.net.in"
+    },
+    {
+      "type": 2,
+      "value": "adjust.world"
+    },
+    {
+      "type": 2,
+      "value": "adkwai.com"
+    },
+    {
+      "type": 2,
+      "value": "admetrica.ru"
+    },
+    {
+      "type": 2,
+      "value": "admob-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "admob.com"
+    },
+    {
+      "type": 2,
+      "value": "admob.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "admusicpic.music.126.net"
+    },
+    {
+      "type": 2,
+      "value": "adnet.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adnet.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "adnxs.com"
+    },
+    {
+      "type": 2,
+      "value": "adping.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adpm.app.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "ads-api.duolingo.com"
+    },
+    {
+      "type": 2,
+      "value": "ads-pixiv.net"
+    },
+    {
+      "type": 2,
+      "value": "ads-twitter.com"
+    },
+    {
+      "type": 2,
+      "value": "ads-union.jd.com"
+    },
+    {
+      "type": 2,
+      "value": "ads-uo.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "ads-ut.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "ads.api.my7v.com"
+    },
+    {
+      "type": 2,
+      "value": "ads.huan.tv"
+    },
+    {
+      "type": 2,
+      "value": "ads.huantest.com"
+    },
+    {
+      "type": 2,
+      "value": "ads.music.126.net"
+    },
+    {
+      "type": 2,
+      "value": "ads.sber.ru"
+    },
+    {
+      "type": 2,
+      "value": "ads.service.kugou.com"
+    },
+    {
+      "type": 2,
+      "value": "ads.sina.com"
+    },
+    {
+      "type": 2,
+      "value": "ads.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "ads.trafficjunky.net"
+    },
+    {
+      "type": 2,
+      "value": "ads.uc.cn"
+    },
+    {
+      "type": 2,
+      "value": "ads.union.jd.com"
+    },
+    {
+      "type": 2,
+      "value": "ads.unitychina.cn"
+    },
+    {
+      "type": 2,
+      "value": "ads.viqeo.tv"
+    },
+    {
+      "type": 2,
+      "value": "ads.wteam.xyz"
+    },
+    {
+      "type": 2,
+      "value": "ads.yahoo.com"
+    },
+    {
+      "type": 2,
+      "value": "ads.yandex"
+    },
+    {
+      "type": 2,
+      "value": "ads.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "ads.youtube.com"
+    },
+    {
+      "type": 2,
+      "value": "adsadvisor.io"
+    },
+    {
+      "type": 2,
+      "value": "adscdn.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "adsclick.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adse.wsa.ximalaya.com"
+    },
+    {
+      "type": 2,
+      "value": "adse.ximalaya.com"
+    },
+    {
+      "type": 2,
+      "value": "adsense.com"
+    },
+    {
+      "type": 2,
+      "value": "adsensecustomsearchads.com"
+    },
+    {
+      "type": 2,
+      "value": "adsenseformobileapps.com"
+    },
+    {
+      "type": 2,
+      "value": "adservice.google.com"
+    },
+    {
+      "type": 2,
+      "value": "adserviceretry.kglink.cn"
+    },
+    {
+      "type": 2,
+      "value": "adserviceretry.kugou.com"
+    },
+    {
+      "type": 2,
+      "value": "adsfile.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adsgram.ai"
+    },
+    {
+      "type": 2,
+      "value": "adsh.m.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "adshmmsg.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adslot.uc.cn"
+    },
+    {
+      "type": 2,
+      "value": "adslvfile.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adslvseed.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adsmind.apdcdn.tc.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adsqqclick.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adstats.tencentmusic.com"
+    },
+    {
+      "type": 2,
+      "value": "adstestview.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adsview.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adsview2.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adtechus.com"
+    },
+    {
+      "type": 2,
+      "value": "adtrack.quark.cn"
+    },
+    {
+      "type": 2,
+      "value": "adtrafficquality.google"
+    },
+    {
+      "type": 2,
+      "value": "adtrue.com"
+    },
+    {
+      "type": 2,
+      "value": "adukwai.com"
+    },
+    {
+      "type": 2,
+      "value": "adv-sv-show.focus.cn"
+    },
+    {
+      "type": 2,
+      "value": "adv-sv-stat.focus.cn"
+    },
+    {
+      "type": 2,
+      "value": "adv.app.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "adv.sec.intl.miui.com"
+    },
+    {
+      "type": 2,
+      "value": "adv.sec.miui.com"
+    },
+    {
+      "type": 2,
+      "value": "adv.vk.com"
+    },
+    {
+      "type": 2,
+      "value": "adv.yandex.com"
+    },
+    {
+      "type": 2,
+      "value": "adv.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "advapi.joyplus.tv"
+    },
+    {
+      "type": 2,
+      "value": "advapikj.joyplus.tv"
+    },
+    {
+      "type": 2,
+      "value": "adver.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "advertisercommunity.com"
+    },
+    {
+      "type": 2,
+      "value": "advertiserscommunity.com"
+    },
+    {
+      "type": 2,
+      "value": "advertising.adobe.com"
+    },
+    {
+      "type": 2,
+      "value": "advertising.apple.com"
+    },
+    {
+      "type": 2,
+      "value": "advertserve.com"
+    },
+    {
+      "type": 2,
+      "value": "adview.cn"
+    },
+    {
+      "type": 2,
+      "value": "adwords-community.com"
+    },
+    {
+      "type": 2,
+      "value": "adwords.com"
+    },
+    {
+      "type": 2,
+      "value": "adwordsexpress.com"
+    },
+    {
+      "type": 2,
+      "value": "adx.36kr.com"
+    },
+    {
+      "type": 2,
+      "value": "adx.xiaodutv.com"
+    },
+    {
+      "type": 2,
+      "value": "adxprtz.com"
+    },
+    {
+      "type": 2,
+      "value": "afd.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "afdconf.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "afp.iqiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "alimama.alicdn.com"
+    },
+    {
+      "type": 2,
+      "value": "alitui.weibo.com"
+    },
+    {
+      "type": 2,
+      "value": "alog.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "alog.umengcloud.com"
+    },
+    {
+      "type": 2,
+      "value": "alogs.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "alogus.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "alt-ad.mail.ru"
+    },
+    {
+      "type": 2,
+      "value": "amazon-adsystem.com"
+    },
+    {
+      "type": 2,
+      "value": "an.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "analytics-alv.google.com"
+    },
+    {
+      "type": 2,
+      "value": "analytics-data.io"
+    },
+    {
+      "type": 2,
+      "value": "analytics.163.com"
+    },
+    {
+      "type": 2,
+      "value": "analytics.cloud.unity3d.com"
+    },
+    {
+      "type": 2,
+      "value": "analytics.facebook.com"
+    },
+    {
+      "type": 2,
+      "value": "analytics.tiktok.com"
+    },
+    {
+      "type": 2,
+      "value": "analytics.umetrip.com"
+    },
+    {
+      "type": 2,
+      "value": "analytics.vk.com"
+    },
+    {
+      "type": 2,
+      "value": "analytics.vpc.duolingo.com"
+    },
+    {
+      "type": 2,
+      "value": "api-adservices.apple.com"
+    },
+    {
+      "type": 2,
+      "value": "api-secure.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "api-secure.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "api-sr.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "api-sr.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "api.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "api.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "api2.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "app-ads-services.com"
+    },
+    {
+      "type": 2,
+      "value": "app-analytics-services-att.com"
+    },
+    {
+      "type": 2,
+      "value": "app-analytics-services.com"
+    },
+    {
+      "type": 2,
+      "value": "app-measurement-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "app-measurement.com"
+    },
+    {
+      "type": 2,
+      "value": "apple.www.letv.com"
+    },
+    {
+      "type": 2,
+      "value": "applovin.com"
+    },
+    {
+      "type": 2,
+      "value": "applvn.com"
+    },
+    {
+      "type": 2,
+      "value": "appmetrica.yandex.com"
+    },
+    {
+      "type": 2,
+      "value": "appmetrica.yandex.net"
+    },
+    {
+      "type": 2,
+      "value": "appmetrica.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "appmetrica.yango.com"
+    },
+    {
+      "type": 2,
+      "value": "appsflyersdk.com"
+    },
+    {
+      "type": 2,
+      "value": "apptracer.ru"
+    },
+    {
+      "type": 2,
+      "value": "ar.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "ark.letv.com"
+    },
+    {
+      "type": 2,
+      "value": "aspect-upush.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "assistant-api.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "assistant-api.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "assp.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "atanx.alicdn.com"
+    },
+    {
+      "type": 2,
+      "value": "atanx2.alicdn.com"
+    },
+    {
+      "type": 2,
+      "value": "atm.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "atom-data.io"
+    },
+    {
+      "type": 2,
+      "value": "atrace.chelaile.net.cn"
+    },
+    {
+      "type": 2,
+      "value": "audid.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "badjs.weixinbridge.com"
+    },
+    {
+      "type": 2,
+      "value": "baichuan-sdk.alicdn.com"
+    },
+    {
+      "type": 2,
+      "value": "baifen.music.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "bds.snssdk.com"
+    },
+    {
+      "type": 2,
+      "value": "bdu.focus.cn"
+    },
+    {
+      "type": 2,
+      "value": "beacon.cdn.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "beacon.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "beacon.sina.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "beaconcdn.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "beizi.biz"
+    },
+    {
+      "type": 2,
+      "value": "bingads.com"
+    },
+    {
+      "type": 2,
+      "value": "biz.weibo.com"
+    },
+    {
+      "type": 2,
+      "value": "bluekai.com"
+    },
+    {
+      "type": 2,
+      "value": "browser.events.data.msn.cn"
+    },
+    {
+      "type": 2,
+      "value": "browser.events.data.msn.com"
+    },
+    {
+      "type": 2,
+      "value": "bs.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "btrace.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "bugly.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "byteadverts.com"
+    },
+    {
+      "type": 2,
+      "value": "bzclk.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "c-adash.m.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "c-nfa.jd.com"
+    },
+    {
+      "type": 2,
+      "value": "c.sayhi.360.cn"
+    },
+    {
+      "type": 2,
+      "value": "c.uaa.iqiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "cafe.github.com"
+    },
+    {
+      "type": 2,
+      "value": "casalemedia.com"
+    },
+    {
+      "type": 2,
+      "value": "cb.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "cbjs.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "ccs.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "cdn.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "cdn.banclip.com"
+    },
+    {
+      "type": 2,
+      "value": "cdn.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "cdp.cloud.unity3d.com"
+    },
+    {
+      "type": 2,
+      "value": "cfts1tifqr.com"
+    },
+    {
+      "type": 2,
+      "value": "china-caa.org"
+    },
+    {
+      "type": 2,
+      "value": "chinaciaf.org"
+    },
+    {
+      "type": 2,
+      "value": "clarity.ms"
+    },
+    {
+      "type": 2,
+      "value": "clck.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "clearbit.com"
+    },
+    {
+      "type": 2,
+      "value": "clearbitjs.com"
+    },
+    {
+      "type": 2,
+      "value": "clearbitscripts.com"
+    },
+    {
+      "type": 2,
+      "value": "click.ali213.net"
+    },
+    {
+      "type": 2,
+      "value": "click.gamersky.com"
+    },
+    {
+      "type": 2,
+      "value": "click.hunantv.com"
+    },
+    {
+      "type": 2,
+      "value": "click.uve.mobile.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "click.uve.weibo.com"
+    },
+    {
+      "type": 2,
+      "value": "clickstream.sberbank.ru"
+    },
+    {
+      "type": 2,
+      "value": "cloudpush.iqiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "cm.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "cnaa123.com"
+    },
+    {
+      "type": 2,
+      "value": "cnlogs.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "cnlogs.umengcloud.com"
+    },
+    {
+      "type": 2,
+      "value": "collector.github.com"
+    },
+    {
+      "type": 2,
+      "value": "collector.xhamster.com"
+    },
+    {
+      "type": 2,
+      "value": "config.uca.cloud.unity3d.com"
+    },
+    {
+      "type": 2,
+      "value": "contentabc.com"
+    },
+    {
+      "type": 2,
+      "value": "contextual.media.net"
+    },
+    {
+      "type": 2,
+      "value": "counter.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "cpmstar.com"
+    },
+    {
+      "type": 2,
+      "value": "cpro.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "cpro.baidustatic.com"
+    },
+    {
+      "type": 2,
+      "value": "cps.360buy.com"
+    },
+    {
+      "type": 2,
+      "value": "cpu.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "crash.163.com"
+    },
+    {
+      "type": 2,
+      "value": "crash2.zhihu.com"
+    },
+    {
+      "type": 2,
+      "value": "crashlytics.163.com"
+    },
+    {
+      "type": 2,
+      "value": "cretgate.com"
+    },
+    {
+      "type": 2,
+      "value": "csjplatform.com"
+    },
+    {
+      "type": 2,
+      "value": "cstm.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "ctobsnssdk.com"
+    },
+    {
+      "type": 2,
+      "value": "cupid.iqiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "cxhub.ru"
+    },
+    {
+      "type": 2,
+      "value": "da.hunantv.com"
+    },
+    {
+      "type": 2,
+      "value": "da.mgtv.com"
+    },
+    {
+      "type": 2,
+      "value": "data.flurry.com"
+    },
+    {
+      "type": 2,
+      "value": "data.mistat.india.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "data.mistat.intl.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "data.mistat.rus.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "data.mistat.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "datayi.cn"
+    },
+    {
+      "type": 2,
+      "value": "dc.letv.com"
+    },
+    {
+      "type": 2,
+      "value": "decide.mixpanel.com"
+    },
+    {
+      "type": 2,
+      "value": "demdex.net"
+    },
+    {
+      "type": 2,
+      "value": "dig.bdurl.net"
+    },
+    {
+      "type": 2,
+      "value": "doubleclick-cn.net"
+    },
+    {
+      "type": 2,
+      "value": "doubleclick.cn"
+    },
+    {
+      "type": 2,
+      "value": "doubleclick.com"
+    },
+    {
+      "type": 2,
+      "value": "doubleclick.net"
+    },
+    {
+      "type": 2,
+      "value": "drmcmm.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "dt.dbankcloud.ru"
+    },
+    {
+      "type": 2,
+      "value": "dualstack-logs.amap.com"
+    },
+    {
+      "type": 2,
+      "value": "duiwai.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "dup.baidustatic.com"
+    },
+    {
+      "type": 2,
+      "value": "e.kuaishou.cn"
+    },
+    {
+      "type": 2,
+      "value": "e.kuaishou.com"
+    },
+    {
+      "type": 2,
+      "value": "e.mindbox.ru"
+    },
+    {
+      "type": 2,
+      "value": "e.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "e.stat.ykimg.com"
+    },
+    {
+      "type": 2,
+      "value": "eclick.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "ecma.bdimg.com"
+    },
+    {
+      "type": 2,
+      "value": "ecmb.bdimg.com"
+    },
+    {
+      "type": 2,
+      "value": "ecmc.bdimg.com"
+    },
+    {
+      "type": 2,
+      "value": "eduad.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "eiv.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "emogi.com"
+    },
+    {
+      "type": 2,
+      "value": "ems.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "engagement-static.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "engagement-static.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "ero-advertising.com"
+    },
+    {
+      "type": 2,
+      "value": "eroadvertising.com"
+    },
+    {
+      "type": 2,
+      "value": "euads-o.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "evt.mxplay.com"
+    },
+    {
+      "type": 2,
+      "value": "exoclick.com"
+    },
+    {
+      "type": 2,
+      "value": "exosrv.com"
+    },
+    {
+      "type": 2,
+      "value": "extlog.snssdk.com"
+    },
+    {
+      "type": 2,
+      "value": "facebookads.com"
+    },
+    {
+      "type": 2,
+      "value": "fclick.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "fclog.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "fcmatch.google.com"
+    },
+    {
+      "type": 2,
+      "value": "fenxi.360.cn"
+    },
+    {
+      "type": 2,
+      "value": "fenxi.com"
+    },
+    {
+      "type": 2,
+      "value": "fourier.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "fout.jp"
+    },
+    {
+      "type": 2,
+      "value": "fpb.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "g.163.com"
+    },
+    {
+      "type": 2,
+      "value": "g.click.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "g.mindbox.ru"
+    },
+    {
+      "type": 2,
+      "value": "g1.tagtic.cn"
+    },
+    {
+      "type": 2,
+      "value": "g3.letv.com"
+    },
+    {
+      "type": 2,
+      "value": "gdt.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "gemini.yahoo.com"
+    },
+    {
+      "type": 2,
+      "value": "getsentry.com"
+    },
+    {
+      "type": 2,
+      "value": "gia.jd.com"
+    },
+    {
+      "type": 2,
+      "value": "gio.ren"
+    },
+    {
+      "type": 2,
+      "value": "giocdn.com"
+    },
+    {
+      "type": 2,
+      "value": "gmossp-sp.jp"
+    },
+    {
+      "type": 2,
+      "value": "go2.global"
+    },
+    {
+      "type": 2,
+      "value": "google-analytics-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "google-analytics.com"
+    },
+    {
+      "type": 2,
+      "value": "googleadapis.com"
+    },
+    {
+      "type": 2,
+      "value": "googleadapis.l.google.com"
+    },
+    {
+      "type": 2,
+      "value": "googleads-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "googleads.com"
+    },
+    {
+      "type": 2,
+      "value": "googleadservices-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "googleadservices.com"
+    },
+    {
+      "type": 2,
+      "value": "googleadsserving.cn"
+    },
+    {
+      "type": 2,
+      "value": "googleanalytics.com"
+    },
+    {
+      "type": 2,
+      "value": "googleoptimize-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "googleoptimize.com"
+    },
+    {
+      "type": 2,
+      "value": "googlesyndication-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "googlesyndication.com"
+    },
+    {
+      "type": 2,
+      "value": "googletagmanager-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "googletagmanager.com"
+    },
+    {
+      "type": 2,
+      "value": "googletagservices-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "googletagservices.com"
+    },
+    {
+      "type": 2,
+      "value": "googletraveladservices-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "googletraveladservices.com"
+    },
+    {
+      "type": 2,
+      "value": "googlevads-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "gozendata.com"
+    },
+    {
+      "type": 2,
+      "value": "graph-fallback.instagram.com"
+    },
+    {
+      "type": 2,
+      "value": "graph.instagram.com"
+    },
+    {
+      "type": 2,
+      "value": "growin.cn"
+    },
+    {
+      "type": 2,
+      "value": "growingio.cn"
+    },
+    {
+      "type": 2,
+      "value": "growingio.com"
+    },
+    {
+      "type": 2,
+      "value": "gs.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "gs.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "guanggaoad.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "gz-data.com"
+    },
+    {
+      "type": 2,
+      "value": "gzads.com"
+    },
+    {
+      "type": 2,
+      "value": "h-adashx.ut.ele.me"
+    },
+    {
+      "type": 2,
+      "value": "h-adashx.ut.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "h-adashx.ut.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "h-adashx4yt.ut.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "h2tcbox.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "hao123union.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "hm.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "hmma.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "hq-tracking.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "htrace.wetvinfo.com"
+    },
+    {
+      "type": 2,
+      "value": "httpool.com"
+    },
+    {
+      "type": 2,
+      "value": "hubcloud.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "hwads-t.api.my7v.com"
+    },
+    {
+      "type": 2,
+      "value": "i-mobile.co.jp"
+    },
+    {
+      "type": 2,
+      "value": "i.snssdk.com"
+    },
+    {
+      "type": 2,
+      "value": "iabchina.cn"
+    },
+    {
+      "type": 2,
+      "value": "iad.apple.com"
+    },
+    {
+      "type": 2,
+      "value": "iadmat.nosdn.127.net"
+    },
+    {
+      "type": 2,
+      "value": "iadmatapk.nosdn.127.net"
+    },
+    {
+      "type": 2,
+      "value": "iadmusicmat.music.126.net"
+    },
+    {
+      "type": 2,
+      "value": "iadmusicmatvideo.music.126.net"
+    },
+    {
+      "type": 2,
+      "value": "iads.unity3d.com"
+    },
+    {
+      "type": 2,
+      "value": "iadsdk.apple.com"
+    },
+    {
+      "type": 2,
+      "value": "ifacelog.iqiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "im-apps.net"
+    },
+    {
+      "type": 2,
+      "value": "img-bss.csdn.net"
+    },
+    {
+      "type": 2,
+      "value": "img-x.jd.com"
+    },
+    {
+      "type": 2,
+      "value": "imglnkc.com"
+    },
+    {
+      "type": 2,
+      "value": "imglnkd.com"
+    },
+    {
+      "type": 2,
+      "value": "imgstat.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "imp.go.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "impact-ad.jp"
+    },
+    {
+      "type": 2,
+      "value": "inner-active.mobi"
+    },
+    {
+      "type": 2,
+      "value": "innovid.com"
+    },
+    {
+      "type": 2,
+      "value": "insights-collector.gog.com"
+    },
+    {
+      "type": 2,
+      "value": "inte.sogou.com"
+    },
+    {
+      "type": 2,
+      "value": "inte.sogoucdn.com"
+    },
+    {
+      "type": 2,
+      "value": "ipinyou.com"
+    },
+    {
+      "type": 2,
+      "value": "ipinyou.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "ironbeast.io"
+    },
+    {
+      "type": 2,
+      "value": "isdspeed.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "iwanad.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "ja.gamersky.com"
+    },
+    {
+      "type": 2,
+      "value": "ja1.gamersky.com"
+    },
+    {
+      "type": 2,
+      "value": "ja2.gamersky.com"
+    },
+    {
+      "type": 2,
+      "value": "jads.co"
+    },
+    {
+      "type": 2,
+      "value": "jl3.yjaxa.top"
+    },
+    {
+      "type": 2,
+      "value": "js-agent.newrelic.com"
+    },
+    {
+      "type": 2,
+      "value": "juicyads.com"
+    },
+    {
+      "type": 2,
+      "value": "jzt.jd.com"
+    },
+    {
+      "type": 2,
+      "value": "kaprila.com"
+    },
+    {
+      "type": 2,
+      "value": "kepler-37b.com"
+    },
+    {
+      "type": 2,
+      "value": "kurogames-ads.com"
+    },
+    {
+      "type": 2,
+      "value": "kuyun.com"
+    },
+    {
+      "type": 2,
+      "value": "lab.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "lab.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "ladsp.com"
+    },
+    {
+      "type": 2,
+      "value": "leanplum.com"
+    },
+    {
+      "type": 2,
+      "value": "lianmeng.360.cn"
+    },
+    {
+      "type": 2,
+      "value": "lijit.com"
+    },
+    {
+      "type": 2,
+      "value": "log-upload-os.hoyoverse.com"
+    },
+    {
+      "type": 2,
+      "value": "log-upload.mihoyo.com"
+    },
+    {
+      "type": 2,
+      "value": "log.dzen.ru"
+    },
+    {
+      "type": 2,
+      "value": "log.hunantv.com"
+    },
+    {
+      "type": 2,
+      "value": "log.mix.sina.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "log.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "log.tbs.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "log.umtrack.com"
+    },
+    {
+      "type": 2,
+      "value": "log.v2.hunantv.com"
+    },
+    {
+      "type": 2,
+      "value": "log.zijieapi.com"
+    },
+    {
+      "type": 2,
+      "value": "log2.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "logger.qmai.cn"
+    },
+    {
+      "type": 2,
+      "value": "logs.amap.com"
+    },
+    {
+      "type": 2,
+      "value": "logs.chelaile.net.cn"
+    },
+    {
+      "type": 2,
+      "value": "logupdate.avlyun.sec.miui.com"
+    },
+    {
+      "type": 2,
+      "value": "lqc006.com"
+    },
+    {
+      "type": 2,
+      "value": "lstat.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "lu.sogou.com"
+    },
+    {
+      "type": 2,
+      "value": "lu.sogoucdn.com"
+    },
+    {
+      "type": 2,
+      "value": "m-adash.m.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "m.aty.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "mail-ads.google.com"
+    },
+    {
+      "type": 2,
+      "value": "marketing.alibaba.com"
+    },
+    {
+      "type": 2,
+      "value": "marketingplatform.google.com"
+    },
+    {
+      "type": 2,
+      "value": "mbdlog.iqiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "mc.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "mcs.snssdk.com"
+    },
+    {
+      "type": 2,
+      "value": "mdt.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "mediav.com"
+    },
+    {
+      "type": 2,
+      "value": "metrics.duolingo.com"
+    },
+    {
+      "type": 2,
+      "value": "metrics.viqeo.tv"
+    },
+    {
+      "type": 2,
+      "value": "metrika.yandex.com"
+    },
+    {
+      "type": 2,
+      "value": "metrika.yandex.net"
+    },
+    {
+      "type": 2,
+      "value": "metrika.yandex.ru"
+    },
+    {
+      "type": 2,
+      "value": "mfadsrvr.com"
+    },
+    {
+      "type": 2,
+      "value": "mgid.com"
+    },
+    {
+      "type": 2,
+      "value": "miaowu.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "microad.co.jp"
+    },
+    {
+      "type": 2,
+      "value": "microad.jp"
+    },
+    {
+      "type": 2,
+      "value": "microsoftads.com"
+    },
+    {
+      "type": 2,
+      "value": "mipcache.bdstatic.com"
+    },
+    {
+      "type": 2,
+      "value": "misc.in.duokanbox.com"
+    },
+    {
+      "type": 2,
+      "value": "mixer.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "mlog.hiido.com"
+    },
+    {
+      "type": 2,
+      "value": "moat.com"
+    },
+    {
+      "type": 2,
+      "value": "moatads.com"
+    },
+    {
+      "type": 2,
+      "value": "mobads-logs.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "mobads-pre-config.cdn.bcebos.com"
+    },
+    {
+      "type": 2,
+      "value": "mobads.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "mobileads.google.com"
+    },
+    {
+      "type": 2,
+      "value": "mobilemsg.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "mobwithad.com"
+    },
+    {
+      "type": 2,
+      "value": "monitor.music.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "monitor.uu.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "mopub.com"
+    },
+    {
+      "type": 2,
+      "value": "mountain.zhidao.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "mpush.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "ms.dzen.ru"
+    },
+    {
+      "type": 2,
+      "value": "ms.vk.com"
+    },
+    {
+      "type": 2,
+      "value": "ms.vk.ru"
+    },
+    {
+      "type": 2,
+      "value": "msads.net"
+    },
+    {
+      "type": 2,
+      "value": "msg.video.qiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "msg.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "msg2.video.qiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "mtrace.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "mvad.com"
+    },
+    {
+      "type": 2,
+      "value": "myadx.net"
+    },
+    {
+      "type": 2,
+      "value": "najva.com"
+    },
+    {
+      "type": 2,
+      "value": "nbsdk-baichuan.alicdn.com"
+    },
+    {
+      "type": 2,
+      "value": "nbsdk-baichuan.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "nelreports.net"
+    },
+    {
+      "type": 2,
+      "value": "neon.click"
+    },
+    {
+      "type": 2,
+      "value": "new-aaid.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "new-aaid.umeng.com.gds.alibabadns.com"
+    },
+    {
+      "type": 2,
+      "value": "ns1p.net"
+    },
+    {
+      "type": 2,
+      "value": "nsclick.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "nsclickvideo.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "obs.mts.ru"
+    },
+    {
+      "type": 2,
+      "value": "oc.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "ogury.co"
+    },
+    {
+      "type": 2,
+      "value": "ogury.com"
+    },
+    {
+      "type": 2,
+      "value": "onesignal.com"
+    },
+    {
+      "type": 2,
+      "value": "openx.net"
+    },
+    {
+      "type": 2,
+      "value": "openxadexchange.com"
+    },
+    {
+      "type": 2,
+      "value": "openxcdn.net"
+    },
+    {
+      "type": 2,
+      "value": "openxenterprise.com"
+    },
+    {
+      "type": 2,
+      "value": "openxmarket.asia"
+    },
+    {
+      "type": 2,
+      "value": "optaim.com"
+    },
+    {
+      "type": 2,
+      "value": "optimus-ads.amap.com"
+    },
+    {
+      "type": 2,
+      "value": "p-log.ykimg.com"
+    },
+    {
+      "type": 2,
+      "value": "p.aty.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "p4p.sina.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "pagead.l.google.com"
+    },
+    {
+      "type": 2,
+      "value": "pangle.cn"
+    },
+    {
+      "type": 2,
+      "value": "pangolin-dsp-toutiao-b.com"
+    },
+    {
+      "type": 2,
+      "value": "pangolin-dsp-toutiao.com"
+    },
+    {
+      "type": 2,
+      "value": "pangolin-hl.snssdk.com"
+    },
+    {
+      "type": 2,
+      "value": "pangolin-lf.snssdk.com"
+    },
+    {
+      "type": 2,
+      "value": "pangolin-lq.snssdk.com"
+    },
+    {
+      "type": 2,
+      "value": "pangolin-sdk-toutiao-b.com"
+    },
+    {
+      "type": 2,
+      "value": "pangolin-sdk-toutiao.com"
+    },
+    {
+      "type": 2,
+      "value": "pangolin-sdk-toutiao1.com"
+    },
+    {
+      "type": 2,
+      "value": "pangolin.snssdk.com"
+    },
+    {
+      "type": 2,
+      "value": "panplayable-toutiao-b.com"
+    },
+    {
+      "type": 2,
+      "value": "panplayable-toutiao.com"
+    },
+    {
+      "type": 2,
+      "value": "partnerad.l.google.com"
+    },
+    {
+      "type": 2,
+      "value": "passport-log.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "pb.i.sogou.com"
+    },
+    {
+      "type": 2,
+      "value": "pbmp.ali213.net"
+    },
+    {
+      "type": 2,
+      "value": "perf-events.cloud.unity3d.com"
+    },
+    {
+      "type": 2,
+      "value": "perf.cloud.unity3d.com"
+    },
+    {
+      "type": 2,
+      "value": "pgdt.gtimg.cn"
+    },
+    {
+      "type": 2,
+      "value": "pglstatp-sdk-toutiao.com"
+    },
+    {
+      "type": 2,
+      "value": "pglstatp-snssdk-toutiao.com"
+    },
+    {
+      "type": 2,
+      "value": "pglstatp-toutiao-b.com"
+    },
+    {
+      "type": 2,
+      "value": "pglstatp-toutiao.com"
+    },
+    {
+      "type": 2,
+      "value": "pimlog.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "pingjs.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "pixel.facebook.com"
+    },
+    {
+      "type": 2,
+      "value": "pl.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "plbslog.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "pmir.3g.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "policy.video.iqiyi.com"
+    },
+    {
+      "type": 2,
+      "value": "pos.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "prd-lender.cdp.internal.unity3d.com"
+    },
+    {
+      "type": 2,
+      "value": "presage.io"
+    },
+    {
+      "type": 2,
+      "value": "pub.network"
+    },
+    {
+      "type": 2,
+      "value": "pubmatic.co.jp"
+    },
+    {
+      "type": 2,
+      "value": "pubmatic.com"
+    },
+    {
+      "type": 2,
+      "value": "push.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "pv.hd.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "pv.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "qhupdate.com"
+    },
+    {
+      "type": 2,
+      "value": "qpb.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "qpb1.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "qqdata.ab.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "qwapi.com"
+    },
+    {
+      "type": 2,
+      "value": "r.mail.ru"
+    },
+    {
+      "type": 2,
+      "value": "radar.imgsmail.ru"
+    },
+    {
+      "type": 2,
+      "value": "reachmax.cn"
+    },
+    {
+      "type": 2,
+      "value": "realsrv.com"
+    },
+    {
+      "type": 2,
+      "value": "regionconfig.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "regionconfig.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "reke.at.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "relap.mail.ru"
+    },
+    {
+      "type": 2,
+      "value": "report.qqweb.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "report.tencentmusic.com"
+    },
+    {
+      "type": 2,
+      "value": "res.hunantv.com"
+    },
+    {
+      "type": 2,
+      "value": "resolve.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "retcode.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "reyun.com"
+    },
+    {
+      "type": 2,
+      "value": "rmonitor.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "rs.sinajs.cn"
+    },
+    {
+      "type": 2,
+      "value": "s-adashx.ut.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "s.360.cn"
+    },
+    {
+      "type": 2,
+      "value": "s.mindbox.ru"
+    },
+    {
+      "type": 2,
+      "value": "s.so.360.cn"
+    },
+    {
+      "type": 2,
+      "value": "s.union.360.cn"
+    },
+    {
+      "type": 2,
+      "value": "s4yxaqyq95.com"
+    },
+    {
+      "type": 2,
+      "value": "sa.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "sabavision.com"
+    },
+    {
+      "type": 2,
+      "value": "samsungadhub.com"
+    },
+    {
+      "type": 2,
+      "value": "samsungads.com"
+    },
+    {
+      "type": 2,
+      "value": "sbeacon.sina.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "sbermarketing.ru"
+    },
+    {
+      "type": 2,
+      "value": "sclick.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "sdkclick.mobile.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "segment.com"
+    },
+    {
+      "type": 2,
+      "value": "segment.io"
+    },
+    {
+      "type": 2,
+      "value": "segmenthub.com"
+    },
+    {
+      "type": 2,
+      "value": "segmentify.com"
+    },
+    {
+      "type": 2,
+      "value": "sensors.umetrip.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "sentry-cdn.com"
+    },
+    {
+      "type": 2,
+      "value": "sentry.d.mi.com"
+    },
+    {
+      "type": 2,
+      "value": "sentry.d.xiaomi.net"
+    },
+    {
+      "type": 2,
+      "value": "sentry.dev"
+    },
+    {
+      "type": 2,
+      "value": "sentry.io"
+    },
+    {
+      "type": 2,
+      "value": "sentry.music.163.com"
+    },
+    {
+      "type": 2,
+      "value": "serving-sys.com"
+    },
+    {
+      "type": 2,
+      "value": "sf3-ttcdn-tos.pstatp.com"
+    },
+    {
+      "type": 2,
+      "value": "shhs-ydd8x2.yjrmss.cn"
+    },
+    {
+      "type": 2,
+      "value": "shoppingads.cn"
+    },
+    {
+      "type": 2,
+      "value": "shuzilm.cn"
+    },
+    {
+      "type": 2,
+      "value": "sigmob.cn"
+    },
+    {
+      "type": 2,
+      "value": "sigmob.com"
+    },
+    {
+      "type": 2,
+      "value": "slog.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "slog.sina.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "snapads.com"
+    },
+    {
+      "type": 2,
+      "value": "sngmta.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "socdm.com"
+    },
+    {
+      "type": 2,
+      "value": "spcode.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "splash-ads.cdn.unity.cn"
+    },
+    {
+      "type": 2,
+      "value": "splash-ads.unitychina.cn"
+    },
+    {
+      "type": 2,
+      "value": "spotxchange.com"
+    },
+    {
+      "type": 2,
+      "value": "sr-client-cfg.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "sr-client-cfg.eu.amplitude.com"
+    },
+    {
+      "type": 2,
+      "value": "ssacdn.com"
+    },
+    {
+      "type": 2,
+      "value": "ssp.api.tappx.com"
+    },
+    {
+      "type": 2,
+      "value": "stat.m.jd.com"
+    },
+    {
+      "type": 2,
+      "value": "stat.y.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "stat.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "static.hotjar.com"
+    },
+    {
+      "type": 2,
+      "value": "static.javhd.com"
+    },
+    {
+      "type": 2,
+      "value": "static.sensorsdata.cn"
+    },
+    {
+      "type": 2,
+      "value": "statis.api.3g.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "stats.music.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "supersonic.com"
+    },
+    {
+      "type": 2,
+      "value": "supersonicads-a.akamaihd.net"
+    },
+    {
+      "type": 2,
+      "value": "supersonicads.com"
+    },
+    {
+      "type": 2,
+      "value": "syh.zybang.com"
+    },
+    {
+      "type": 2,
+      "value": "taboola.com"
+    },
+    {
+      "type": 2,
+      "value": "tajs.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "tapsell.ir"
+    },
+    {
+      "type": 2,
+      "value": "target.my.com"
+    },
+    {
+      "type": 2,
+      "value": "target.vk.ru"
+    },
+    {
+      "type": 2,
+      "value": "tcbox.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "tce.alicdn.com"
+    },
+    {
+      "type": 2,
+      "value": "tcss.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "tdsdk.cpatrk.net"
+    },
+    {
+      "type": 2,
+      "value": "telecome.cn"
+    },
+    {
+      "type": 2,
+      "value": "testads.api.my7v.com"
+    },
+    {
+      "type": 2,
+      "value": "theta.sogoucdn.com"
+    },
+    {
+      "type": 2,
+      "value": "tjqonline.cn"
+    },
+    {
+      "type": 2,
+      "value": "tm-banners.gamingadult.com"
+    },
+    {
+      "type": 2,
+      "value": "tmead.y.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "tmeadcomm.y.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "tns.simba.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "toboads.com"
+    },
+    {
+      "type": 2,
+      "value": "top-fwz1.mail.ru"
+    },
+    {
+      "type": 2,
+      "value": "tpstelemetry.tencent.com"
+    },
+    {
+      "type": 2,
+      "value": "trace-flow.ru"
+    },
+    {
+      "type": 2,
+      "value": "trace.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "track.lc.quark.cn"
+    },
+    {
+      "type": 2,
+      "value": "track.sohu.com"
+    },
+    {
+      "type": 2,
+      "value": "tracker-api.my.com"
+    },
+    {
+      "type": 2,
+      "value": "tracker.ai.xiaomi.com"
+    },
+    {
+      "type": 2,
+      "value": "tracker.my.com"
+    },
+    {
+      "type": 2,
+      "value": "tracker.xiaomixiaoai.com"
+    },
+    {
+      "type": 2,
+      "value": "tracking.mcdonalds.com.cn"
+    },
+    {
+      "type": 2,
+      "value": "tracking.miui.com"
+    },
+    {
+      "type": 2,
+      "value": "trackingprd.hwwt8.com"
+    },
+    {
+      "type": 2,
+      "value": "trackserver.shuxinyc.com"
+    },
+    {
+      "type": 2,
+      "value": "trafficfactory.biz"
+    },
+    {
+      "type": 2,
+      "value": "tsyndicate.com"
+    },
+    {
+      "type": 2,
+      "value": "tubemogul.com"
+    },
+    {
+      "type": 2,
+      "value": "uberads.com"
+    },
+    {
+      "type": 2,
+      "value": "ubmcvideo.baidustatic.com"
+    },
+    {
+      "type": 2,
+      "value": "ugdtimg.com"
+    },
+    {
+      "type": 2,
+      "value": "ulogs.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "ulogs.umengcloud.com"
+    },
+    {
+      "type": 2,
+      "value": "unimhk.com"
+    },
+    {
+      "type": 2,
+      "value": "union.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "unioncom.cc"
+    },
+    {
+      "type": 2,
+      "value": "unionimage.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "unityads.unity.cn"
+    },
+    {
+      "type": 2,
+      "value": "unityads.unity3d.com"
+    },
+    {
+      "type": 2,
+      "value": "unityads.unitychina.cn"
+    },
+    {
+      "type": 2,
+      "value": "upapi.net"
+    },
+    {
+      "type": 2,
+      "value": "uranus.sogou.com"
+    },
+    {
+      "type": 2,
+      "value": "urchin.com"
+    },
+    {
+      "type": 2,
+      "value": "utoken.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "v6-adashx.ut.amap.com"
+    },
+    {
+      "type": 2,
+      "value": "v6-adashx.ut.cainiao.com"
+    },
+    {
+      "type": 2,
+      "value": "v6-adashx.ut.ele.me"
+    },
+    {
+      "type": 2,
+      "value": "v6-adashx.ut.taobao.com"
+    },
+    {
+      "type": 2,
+      "value": "v6-adashx.ut.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "vk-analytics.ru"
+    },
+    {
+      "type": 2,
+      "value": "w.cnzz.com"
+    },
+    {
+      "type": 2,
+      "value": "wangmeng.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "wapwbclick.mobile.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "wbclick.mobile.sina.cn"
+    },
+    {
+      "type": 2,
+      "value": "webvisor.com"
+    },
+    {
+      "type": 2,
+      "value": "webvisor.org"
+    },
+    {
+      "type": 2,
+      "value": "wit.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "wkctj.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "wm.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "wmbd.gamersky.com"
+    },
+    {
+      "type": 2,
+      "value": "wuliao.epro.sogou.com"
+    },
+    {
+      "type": 2,
+      "value": "wwads.cn"
+    },
+    {
+      "type": 2,
+      "value": "xy-log.tagtic.cn"
+    },
+    {
+      "type": 2,
+      "value": "yads.tech"
+    },
+    {
+      "type": 2,
+      "value": "yandex-metrica.ru"
+    },
+    {
+      "type": 2,
+      "value": "yandexmetrica.com"
+    },
+    {
+      "type": 2,
+      "value": "yango-ads.com"
+    },
+    {
+      "type": 2,
+      "value": "yektanet.com"
+    },
+    {
+      "type": 2,
+      "value": "yfanads.cn"
+    },
+    {
+      "type": 2,
+      "value": "yfanads.com"
+    },
+    {
+      "type": 2,
+      "value": "yk-ssp.ad.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "ykad-data.youku.com"
+    },
+    {
+      "type": 2,
+      "value": "ylog.hiido.com"
+    },
+    {
+      "type": 2,
+      "value": "youdaoads.com"
+    },
+    {
+      "type": 2,
+      "value": "ysm.yahoo.com"
+    },
+    {
+      "type": 2,
+      "value": "z.gds.cnzz.com"
+    },
+    {
+      "type": 2,
+      "value": "zhihu-web-analytics.zhihu.com"
+    },
+    {
+      "type": 2,
+      "value": "zhugeapi.com"
+    },
+    {
+      "type": 2,
+      "value": "zhugeapi.net"
+    },
+    {
+      "type": 2,
+      "value": "zhugeio.com"
+    },
+    {
+      "type": 2,
+      "value": "zxid-api.mobileservice.cn"
+    },
+    {
+      "type": 2,
+      "value": "zxid-m.mobileservice.cn"
+    },
+    {
+      "type": 2,
+      "value": "zz.bdstatic.com"
+    },
+    {
+      "type": 3,
+      "value": "1l-hit.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "1l-hit.vkplay.ru"
+    },
+    {
+      "type": 3,
+      "value": "ad-channel.diwodiwo.xyz"
+    },
+    {
+      "type": 3,
+      "value": "ad-display.diwodiwo.xyz"
+    },
+    {
+      "type": 3,
+      "value": "ad.ozone.ru"
+    },
+    {
+      "type": 3,
+      "value": "ad4.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "adblogger.vk.com"
+    },
+    {
+      "type": 3,
+      "value": "adblogger.vk.ru"
+    },
+    {
+      "type": 3,
+      "value": "adeventtracker.spotify.com"
+    },
+    {
+      "type": 3,
+      "value": "adfstat.yandex.ru"
+    },
+    {
+      "type": 3,
+      "value": "ads-gate.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "ads-img.mozilla.org"
+    },
+    {
+      "type": 3,
+      "value": "ads-integration.rustore.ru"
+    },
+    {
+      "type": 3,
+      "value": "ads-media.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "ads.dahlmessenger.com"
+    },
+    {
+      "type": 3,
+      "value": "ads.icq.com"
+    },
+    {
+      "type": 3,
+      "value": "ads.mozilla.org"
+    },
+    {
+      "type": 3,
+      "value": "ads.rustore.ru"
+    },
+    {
+      "type": 3,
+      "value": "ads.vk.com"
+    },
+    {
+      "type": 3,
+      "value": "ads.vk.ru"
+    },
+    {
+      "type": 3,
+      "value": "ads.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "ads.x5.ru"
+    },
+    {
+      "type": 3,
+      "value": "ads.x5media.ru"
+    },
+    {
+      "type": 3,
+      "value": "ads.yandex.com"
+    },
+    {
+      "type": 3,
+      "value": "ads.yango.com"
+    },
+    {
+      "type": 3,
+      "value": "ads3-normal-hl.zijieapi.com"
+    },
+    {
+      "type": 3,
+      "value": "ads3-normal.zijieapi.com"
+    },
+    {
+      "type": 3,
+      "value": "ads5-normal-hl.zijieapi.com"
+    },
+    {
+      "type": 3,
+      "value": "ads5-normal.zijieapi.com"
+    },
+    {
+      "type": 3,
+      "value": "adsapp.dahlmessenger.com"
+    },
+    {
+      "type": 3,
+      "value": "adsapp.stage.telega.info"
+    },
+    {
+      "type": 3,
+      "value": "adsapp.telega.info"
+    },
+    {
+      "type": 3,
+      "value": "adsdk.yandex.ru"
+    },
+    {
+      "type": 3,
+      "value": "adstudio-assets.scdn.co"
+    },
+    {
+      "type": 3,
+      "value": "adv.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "adv.rustore.ru"
+    },
+    {
+      "type": 3,
+      "value": "adv.vk.ru"
+    },
+    {
+      "type": 3,
+      "value": "advert-api-sandbox.wb.ru"
+    },
+    {
+      "type": 3,
+      "value": "advert-api-sandbox.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "advert-api.wb.ru"
+    },
+    {
+      "type": 3,
+      "value": "advert-api.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "advert-media-api.wb.ru"
+    },
+    {
+      "type": 3,
+      "value": "advert-media-api.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "advk.vk.ru"
+    },
+    {
+      "type": 3,
+      "value": "agency-adv.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "alt-r.my.com"
+    },
+    {
+      "type": 3,
+      "value": "amc.yandex.ru"
+    },
+    {
+      "type": 3,
+      "value": "an.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "analytics-adv.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "analytics-stage.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "analytics.google.com"
+    },
+    {
+      "type": 3,
+      "value": "analytics.mobile.yandex.net"
+    },
+    {
+      "type": 3,
+      "value": "analytics.vk.ru"
+    },
+    {
+      "type": 3,
+      "value": "analytics.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "api-eu.carrotquest.app"
+    },
+    {
+      "type": 3,
+      "value": "api-eu.carrotquest.io"
+    },
+    {
+      "type": 3,
+      "value": "api-js.mindbox.ru"
+    },
+    {
+      "type": 3,
+      "value": "api-ru.carrotquest.app"
+    },
+    {
+      "type": 3,
+      "value": "api-ru.carrotquest.io"
+    },
+    {
+      "type": 3,
+      "value": "api-ru.mindbox.cloud"
+    },
+    {
+      "type": 3,
+      "value": "api-secure.carrotquest.app"
+    },
+    {
+      "type": 3,
+      "value": "api-secure.carrottrack.app"
+    },
+    {
+      "type": 3,
+      "value": "api-staging.mindbox.ru"
+    },
+    {
+      "type": 3,
+      "value": "api.carrotquest.app"
+    },
+    {
+      "type": 3,
+      "value": "api.carrotquest.io"
+    },
+    {
+      "type": 3,
+      "value": "api.carrottrack.app"
+    },
+    {
+      "type": 3,
+      "value": "api.dashly.app"
+    },
+    {
+      "type": 3,
+      "value": "api.dashlytrack.app"
+    },
+    {
+      "type": 3,
+      "value": "api.mindbox.cloud"
+    },
+    {
+      "type": 3,
+      "value": "api.mindbox.ru"
+    },
+    {
+      "type": 3,
+      "value": "apilog-web.acfun.cn"
+    },
+    {
+      "type": 3,
+      "value": "b2.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "beginners-adv.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "bloodhound.spotify.com"
+    },
+    {
+      "type": 3,
+      "value": "browser-intake-datadoghq.com"
+    },
+    {
+      "type": 3,
+      "value": "bs.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "clck.yandex.com"
+    },
+    {
+      "type": 3,
+      "value": "clck.yandex.net"
+    },
+    {
+      "type": 3,
+      "value": "clck.yango.com"
+    },
+    {
+      "type": 3,
+      "value": "click.rustore.ru"
+    },
+    {
+      "type": 3,
+      "value": "copilot-telemetry-service.githubusercontent.com"
+    },
+    {
+      "type": 3,
+      "value": "copilot-telemetry.githubusercontent.com"
+    },
+    {
+      "type": 3,
+      "value": "disney.my.sentry.io"
+    },
+    {
+      "type": 3,
+      "value": "error-tracking.megamarket.tech"
+    },
+    {
+      "type": 3,
+      "value": "google-analytics-suite.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "incoming-telemetry.thunderbird.net"
+    },
+    {
+      "type": 3,
+      "value": "incoming.telemetry.mozilla.org"
+    },
+    {
+      "type": 3,
+      "value": "informer.yandex.ru"
+    },
+    {
+      "type": 3,
+      "value": "log-sdk.gifshow.com"
+    },
+    {
+      "type": 3,
+      "value": "log.strm.yandex.ru"
+    },
+    {
+      "type": 3,
+      "value": "log3-applog-hl.fqnovel.com"
+    },
+    {
+      "type": 3,
+      "value": "log3-applog.fqnovel.com"
+    },
+    {
+      "type": 3,
+      "value": "log5-applog-hl.fqnovel.com"
+    },
+    {
+      "type": 3,
+      "value": "log5-applog.fqnovel.com"
+    },
+    {
+      "type": 3,
+      "value": "logs.ads.vungle.com"
+    },
+    {
+      "type": 3,
+      "value": "loyalnost-adv.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "marketing-info.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "marketplace-sentry.wb.ru"
+    },
+    {
+      "type": 3,
+      "value": "mc.yandex.com"
+    },
+    {
+      "type": 3,
+      "value": "mc.yandex.net"
+    },
+    {
+      "type": 3,
+      "value": "mc.yango.com"
+    },
+    {
+      "type": 3,
+      "value": "metrics.21-school.ru"
+    },
+    {
+      "type": 3,
+      "value": "metrika.kontur.ru"
+    },
+    {
+      "type": 3,
+      "value": "new-adv.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "o33249.ingest.sentry.io"
+    },
+    {
+      "type": 3,
+      "value": "o33249.ingest.us.sentry.io"
+    },
+    {
+      "type": 3,
+      "value": "o4504926511693824.ingest.sentry.io"
+    },
+    {
+      "type": 3,
+      "value": "openai.qualtrics.com"
+    },
+    {
+      "type": 3,
+      "value": "p3-ad-sign.byteimg.com"
+    },
+    {
+      "type": 3,
+      "value": "p6-ad-sign.byteimg.com"
+    },
+    {
+      "type": 3,
+      "value": "p9-ad-sign.byteimg.com"
+    },
+    {
+      "type": 3,
+      "value": "pixel.rustore.ru"
+    },
+    {
+      "type": 3,
+      "value": "pixel.yandex.com"
+    },
+    {
+      "type": 3,
+      "value": "prodvizhenie-adv.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "questions-adv.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "r0.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "r0.mradx.net"
+    },
+    {
+      "type": 3,
+      "value": "r1.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "reklama.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "report.ap.yandex-net.ru"
+    },
+    {
+      "type": 3,
+      "value": "rs.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "rtlog3-applog-hl.fqnovel.com"
+    },
+    {
+      "type": 3,
+      "value": "rtlog3-applog.fqnovel.com"
+    },
+    {
+      "type": 3,
+      "value": "rtlog5-applog-hl.fqnovel.com"
+    },
+    {
+      "type": 3,
+      "value": "rtlog5-applog.fqnovel.com"
+    },
+    {
+      "type": 3,
+      "value": "sentry-ng.g.smailru.net"
+    },
+    {
+      "type": 3,
+      "value": "sentry.dev-my.com"
+    },
+    {
+      "type": 3,
+      "value": "sentry.dev-my.games"
+    },
+    {
+      "type": 3,
+      "value": "sentry.hetzner.company"
+    },
+    {
+      "type": 3,
+      "value": "sentry.iptv.rt.ru"
+    },
+    {
+      "type": 3,
+      "value": "sentry.kontur.host"
+    },
+    {
+      "type": 3,
+      "value": "sentry.mindbox.ru"
+    },
+    {
+      "type": 3,
+      "value": "sentry.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "sentry.popmechanic.ru"
+    },
+    {
+      "type": 3,
+      "value": "sentry.rustore.ru"
+    },
+    {
+      "type": 3,
+      "value": "sentry.sberauto.com"
+    },
+    {
+      "type": 3,
+      "value": "sentry.viqeo.tv"
+    },
+    {
+      "type": 3,
+      "value": "sentry.wb.ru"
+    },
+    {
+      "type": 3,
+      "value": "sentry.x5.ru"
+    },
+    {
+      "type": 3,
+      "value": "srch-telemeter10.g.smailru.net"
+    },
+    {
+      "type": 3,
+      "value": "stacks.vk-portal.net"
+    },
+    {
+      "type": 3,
+      "value": "stats.avito.ru"
+    },
+    {
+      "type": 3,
+      "value": "stats.dahlmessenger.com"
+    },
+    {
+      "type": 3,
+      "value": "stats.dev.telega.info"
+    },
+    {
+      "type": 3,
+      "value": "stats.rustore.ru"
+    },
+    {
+      "type": 3,
+      "value": "stats.telega.info"
+    },
+    {
+      "type": 3,
+      "value": "stats.vk-portal.net"
+    },
+    {
+      "type": 3,
+      "value": "t.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "target.vk.com"
+    },
+    {
+      "type": 3,
+      "value": "top-staging.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "tracing-http.megamarket.tech"
+    },
+    {
+      "type": 3,
+      "value": "visor.sberbank.ru"
+    },
+    {
+      "type": 3,
+      "value": "web-analytics.wildberries.ru"
+    },
+    {
+      "type": 3,
+      "value": "whiteline.mail.ru"
+    },
+    {
+      "type": 3,
+      "value": "wlog.kuaishou.com"
+    },
+    {
+      "type": 3,
+      "value": "xapi.ozon.by"
+    },
+    {
+      "type": 3,
+      "value": "xapi.ozon.com"
+    },
+    {
+      "type": 3,
+      "value": "xapi.ozon.com.by"
+    },
+    {
+      "type": 3,
+      "value": "xapi.ozon.com.kz"
+    },
+    {
+      "type": 3,
+      "value": "xapi.ozon.kz"
+    },
+    {
+      "type": 3,
+      "value": "xapi.ozon.ru"
+    },
+    {
+      "type": 3,
+      "value": "xapi.ozonru.me"
+    },
+    {
+      "type": 3,
+      "value": "xray.mail.ru"
+    }
+  ]
+}

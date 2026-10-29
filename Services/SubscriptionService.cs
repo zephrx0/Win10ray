@@ -12,8 +12,10 @@ public sealed class SubscriptionService : IDisposable
 {
     private const int MaximumBytes = 4 * 1024 * 1024;
     private readonly HttpClient _client;
+    private readonly HttpClient _proxied;
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, SemaphoreSlim> _locks = new();
 
-    public SubscriptionService()
+    public SubscriptionService(int httpProxyPort = XrayConfigBuilder.HttpPort)
     {
         _client = new HttpClient(new HttpClientHandler
         {
@@ -22,9 +24,27 @@ public sealed class SubscriptionService : IDisposable
             UseProxy = false
         }) { Timeout = TimeSpan.FromSeconds(30) };
         _client.DefaultRequestHeaders.UserAgent.ParseAdd(HardwareIdService.UserAgent);
+        _proxied = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false,
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+            UseProxy = true, Proxy = new WebProxy("http://127.0.0.1:" + httpProxyPort) }) { Timeout = TimeSpan.FromSeconds(30) };
+        _proxied.DefaultRequestHeaders.UserAgent.ParseAdd(HardwareIdService.UserAgent);
     }
 
-    public async Task<ImportResult> FetchAsync(string url, CancellationToken cancellationToken = default, bool sendHwid = true)
+    public async Task<ImportResult> UpdateAsync(Models.SubscriptionProfile subscription, CancellationToken token, bool sendHwid, bool throughConnection)
+    {
+        SemaphoreSlim gate = _locks.GetOrAdd(subscription.Id, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(token).ConfigureAwait(false);
+        try { return await FetchAsync(subscription.Url, token, sendHwid, throughConnection).ConfigureAwait(false); }
+        finally { gate.Release(); }
+    }
+
+    public static bool IsDue(Models.SubscriptionProfile subscription, DateTimeOffset now, int hours, bool networkOrStartup = false)
+        => (subscription.LastAutoAttempt is null || now - subscription.LastAutoAttempt >= TimeSpan.FromMinutes(15)) &&
+           (subscription.RetryAfter is not null ? now >= subscription.RetryAfter : networkOrStartup || subscription.UpdatedAt is null || now - subscription.UpdatedAt >= TimeSpan.FromHours(hours));
+
+    public static TimeSpan RetryDelay(int failures) => TimeSpan.FromMinutes(Math.Min(720, 15 * Math.Pow(2, Math.Clamp(failures - 1, 0, 6))));
+
+    public async Task<ImportResult> FetchAsync(string url, CancellationToken cancellationToken = default, bool sendHwid = true, bool throughConnection = false)
     {
         if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out Uri? uri) || !IsHttp(uri) || !string.IsNullOrEmpty(uri.UserInfo))
             throw new InvalidOperationException(LocalizationService.Pick("Введите корректный URL подписки с http:// или https://.", "Enter a valid HTTP or HTTPS subscription URL."));
@@ -47,7 +67,7 @@ public sealed class SubscriptionService : IDisposable
                     request.Headers.Add("x-app-name", HardwareIdService.ClientName);
                     request.Headers.Add("x-app-version", HardwareIdService.ClientVersion);
                 }
-                using HttpResponseMessage response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
+                using HttpResponseMessage response = await (throughConnection ? _proxied : _client).SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
                 if (HeaderIsTrue(response, "x-hwid-max-devices-reached") || HeaderIsTrue(response, "x-hwid-limit"))
                     throw new InvalidOperationException(LocalizationService.Get("HwidLimit"));
                 if (HeaderIsTrue(response, "x-hwid-not-supported"))
@@ -99,5 +119,5 @@ public sealed class SubscriptionService : IDisposable
     private static bool IsHttp(Uri uri) => uri.Scheme is "http" or "https";
     private static bool SameOrigin(Uri first, Uri second) => first.Scheme == second.Scheme && first.IdnHost.Equals(second.IdnHost, StringComparison.OrdinalIgnoreCase) && first.Port == second.Port;
     private static bool HeaderIsTrue(HttpResponseMessage response, string name) => response.Headers.TryGetValues(name, out var values) && System.Linq.Enumerable.Any(values, value => value.Equals("true", StringComparison.OrdinalIgnoreCase));
-    public void Dispose() => _client.Dispose();
+    public void Dispose() { _client.Dispose(); _proxied.Dispose(); }
 }

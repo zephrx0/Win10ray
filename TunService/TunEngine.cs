@@ -129,7 +129,7 @@ internal sealed class TunEngine : IDisposable
         string config = Path.Combine(Installer.DataDirectory, "tun.json");
         // Wintun derives its GUID from the name. Avoid a device still being removed by PnP.
         string interfaceName = "Win10ray-" + Guid.NewGuid().ToString("N")[..12];
-        await File.WriteAllTextAsync(config, TunConfigBuilder.Build(request.UseDnsOverHttps, request.DnsOverHttpsUrl, interfaceName), cancellationToken);
+        await File.WriteAllTextAsync(config, TunConfigBuilder.Build(request.UseDnsOverHttps, request.DnsOverHttpsUrl, interfaceName, request.BlockAds, request.ProcessRules, request.DefaultRouteDirect), cancellationToken);
         var start = new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory, "sing-box.exe"))
         {
             WorkingDirectory = AppContext.BaseDirectory, UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden,

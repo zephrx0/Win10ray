@@ -11,7 +11,7 @@ public static class HardwareIdService
     public const string ClientName = "Win10ray";
     private static readonly Lazy<Task<string>> Identifier = new(() => Task.Run(CreateIdentifier));
     public static Task<string> GetIdAsync() => Identifier.Value;
-    public static string ClientVersion => typeof(HardwareIdService).Assembly.GetName().Version?.ToString(3) ?? "1.2.0";
+    public static string ClientVersion => System.Reflection.CustomAttributeExtensions.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(typeof(HardwareIdService).Assembly)?.InformationalVersion.Split('+')[0] ?? typeof(HardwareIdService).Assembly.GetName().Version!.ToString(3);
     public static string UserAgent => ClientName + "/" + ClientVersion;
     public static string DeviceDescription => ClientName + " (Windows PC)";
 

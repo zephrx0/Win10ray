@@ -50,7 +50,16 @@ public partial class App : Application
         {
             await Task.Run(_proxy.RecoverIfNeeded);
             var settings = new SettingsService();
-            AppState state = await settings.LoadAsync();
+            AppState state;
+            try { state = await settings.LoadAsync(); }
+            catch (ProfileLockedException exception)
+            {
+                if (MessageBox.Show(exception.Message, "Win10ray", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+                { Shutdown(); return; }
+                await settings.ResetLockedProfileAsync();
+                state = new AppState();
+                await settings.SaveAsync(state);
+            }
             ThemeService.Apply(state.Settings.DarkTheme, "#0078D7");
             _core = new XrayProcessService();
             _viewModel = new MainViewModel(state, settings, _core, _proxy);
