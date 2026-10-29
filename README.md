@@ -11,12 +11,13 @@
 ## Возможности
 
 - VLESS, VMess, Trojan, Shadowsocks. Подписки с автообновлением, QR-коды и флаги серверов.
+- OpenVPN и импорт `.ovpn` доступны в экспериментальной версии.
 - Системный прокси и TUN, правила для приложений, блокировка рекламы и трекеров, DNS over HTTPS.
 - Трей, автоподключение, переключение недоступных серверов, тёмная и светлая темы, русский и английский интерфейс.
 
 ## Скачать
 
-[Стабильная версия](https://github.com/zephrx0/Win10ray/releases/latest) · [Экспериментальная ветка](https://github.com/zephrx0/Win10ray/tree/experimental) · [Все релизы](https://github.com/zephrx0/Win10ray/releases)
+[Стабильная версия](https://github.com/zephrx0/Win10ray/releases/latest) · [Экспериментальная версия с OpenVPN](https://github.com/zephrx0/Win10ray/releases/tag/v1.4.3-experimental.1) · [Все релизы](https://github.com/zephrx0/Win10ray/releases)
 
 Запустите `Win10ray-Setup-*.exe`, импортируйте ссылку или подписку и нажмите «Подключить». Для первого включения TUN подтвердите запрос администратора.
 
@@ -45,12 +46,13 @@ dotnet publish -c Release -p:PublishProfile=Windows
 A native Xray client with a Windows 10 style interface. Built with C# and WPF.
 
 - VLESS, VMess, Trojan and Shadowsocks; automatic subscription refresh, QR codes and server flags.
+- OpenVPN and `.ovpn` import are available in the experimental build.
 - System proxy and TUN, application routing, ad and tracker blocking, DNS over HTTPS.
 - Tray, automatic connection and server failover, light/dark themes, English/Russian interface.
 
 ### Download
 
-[Stable release](https://github.com/zephrx0/Win10ray/releases/latest) · [Experimental branch](https://github.com/zephrx0/Win10ray/tree/experimental) · [All releases](https://github.com/zephrx0/Win10ray/releases)
+[Stable release](https://github.com/zephrx0/Win10ray/releases/latest) · [Experimental OpenVPN build](https://github.com/zephrx0/Win10ray/releases/tag/v1.4.3-experimental.1) · [All releases](https://github.com/zephrx0/Win10ray/releases)
 
 Run `Win10ray-Setup-*.exe`, import a link or subscription and click **Connect**. TUN requires administrator approval on first use.
 
