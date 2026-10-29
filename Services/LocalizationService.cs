@@ -12,6 +12,10 @@ public static class LocalizationService
     public static string Get(string key) => Labels.TryGetValue(key, out var pair) ? Pick(pair.Ru, pair.En) : key;
     private static readonly Dictionary<string, (string Ru, string En)> Labels = new()
     {
+        ["ImportJsonFile"] = ("Файл JSON", "JSON file"),
+        ["ExportJson"] = ("Сохранить JSON", "Save JSON"),
+        ["JsonFileLimit"] = ("За раз можно импортировать до 16 файлов JSON.", "You can import up to 16 JSON files at once."),
+        ["JsonExportWarning"] = ("JSON содержит ключи доступа. Сохранить незашифрованную копию?", "JSON contains access credentials. Save an unencrypted copy?"),
         ["Refreshing"] = ("Обновление...", "Refreshing..."),
         ["BlockAds"] = ("Блокировать рекламу и трекеры", "Block ads and trackers"),
         ["ProcessRouting"] = ("Напрямую для приложений", "Direct access for apps"),

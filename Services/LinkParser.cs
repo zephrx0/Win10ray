@@ -60,6 +60,7 @@ public sealed class LinkParser
         if (string.IsNullOrWhiteSpace(text)) return new(profiles, [LocalizationService.Pick("Список ссылок пуст.", "The link list is empty.")]);
         if (text.Length > MaxInputLength) return new(profiles, [LocalizationService.Pick("Список превышает ограничение 2 МБ.", "The list exceeds 2 MB.")]);
         text = text.Trim().Trim('\uFEFF');
+        if (XrayJsonProfileService.LooksLike(text)) return XrayJsonProfileService.ParseMany(text);
         if (!text.Contains("://", StringComparison.Ordinal))
         {
             try { text = DecodeBase64(text); }
@@ -68,6 +69,7 @@ public sealed class LinkParser
                 return new(profiles, [LocalizationService.Pick("Ожидается список ссылок или его представление Base64.", "Expected a plain or Base64 encoded link list.")]);
             }
         }
+        if (XrayJsonProfileService.LooksLike(text)) return XrayJsonProfileService.ParseMany(text);
         HashSet<string> seen = new(StringComparer.Ordinal);
         // Also accept links separated by spaces, while retaining spaces in a final display name.
         string[] lines = Regex.Split(text, @"\r?\n|\r|\s+(?=(?:vless|vmess|trojan|ss)://)", RegexOptions.IgnoreCase);
@@ -207,6 +209,7 @@ public sealed class LinkParser
 
     public static void Validate(ServerProfile profile)
     {
+        if (profile.Protocol == "xray-json") { XrayJsonProfileService.Read(profile.XrayJson); return; }
         if (string.IsNullOrWhiteSpace(profile.Host) || Uri.CheckHostName(profile.Host) == UriHostNameType.Unknown)
             throw Invalid(LocalizationService.Pick("Не указан корректный адрес сервера.", "A valid server address is required."));
         if (profile.Port is < 1 or > 65535) throw Invalid(LocalizationService.Pick("Порт должен быть от 1 до 65535.", "Port must be between 1 and 65535."));
@@ -247,6 +250,7 @@ public sealed class LinkParser
 
     public static string CalculateSourceKey(ServerProfile profile)
     {
+        if (profile.Protocol == "xray-json") return XrayJsonProfileService.SourceKey(profile.XrayJson);
         string canonical = JsonSerializer.Serialize(new
         {
             profile.Protocol, profile.Host, profile.Port, profile.Credential, profile.Encryption,

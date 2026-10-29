@@ -11,6 +11,7 @@ public static class ShareLinkExporter
     public static string Export(ServerProfile server)
     {
         LinkParser.Validate(server);
+        if (server.Protocol == "xray-json") { var json = XrayJsonProfileService.Read(server.XrayJson); json["remarks"] = server.Name; return json.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }); }
         string authority = server.Address;
         string name = "#" + Uri.EscapeDataString(server.Name);
         if (server.Protocol == "shadowsocks")

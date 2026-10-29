@@ -33,7 +33,7 @@
     <Content Include=".tools\updater\$(Configuration)\updater.exe" Link="updater.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <None Update="docs\images\connection.png" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <None Update="README.md" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-    <None Update="docs\BUILD.md;docs\licenses\QRCoder.txt;Assets\Routing\LICENSE" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Update="docs\BUILD.md;docs\JSON.md;docs\licenses\QRCoder.txt;Assets\Routing\LICENSE" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
   <Target Name="BuildTunHelper" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
     <MSBuild Projects="TunService\Win10ray.TunService.csproj" Targets="Restore;Publish" BuildInParallel="false" Properties="Configuration=$(Configuration);PublishDir=$(MSBuildThisFileDirectory).tools\helper\$(Configuration)\;OutputPath=bin\$(Configuration)\" RemoveProperties="PublishProfile;IntermediateOutputPath;BaseIntermediateOutputPath;PublishSingleFile;IncludeNativeLibrariesForSelfExtract;DebugType;TargetFramework;UseWPF;UseWindowsForms" />

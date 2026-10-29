@@ -105,6 +105,7 @@ public sealed partial class MainViewModel : ObservableObject
         if (!string.IsNullOrEmpty(settingsService.LoadWarning)) Message = settingsService.LoadWarning;
         InitializeSubscriptionScheduler();
         InitializeProcessRouting();
+        InitializeJsonImport();
     }
 
     public ObservableCollection<ServerProfile> Servers { get; }
@@ -329,6 +330,7 @@ public sealed partial class MainViewModel : ObservableObject
         AddProcessRuleCommand?.Notify(); DeleteProcessRuleCommand?.Notify(); BrowseProcessCommand?.Notify(); SelectRunningProcessCommand?.Notify();
         ApplyProcessRulesCommand?.Notify();
         ToggleConnectionCommand?.Notify(); ImportClipboardCommand?.Notify(); PingAllCommand?.Notify();
+        ImportJsonFileCommand?.Notify();
         DeleteServerCommand?.Notify(); RenameServerCommand?.Notify(); AddSubscriptionCommand?.Notify();
         UpdateSubscriptionsCommand?.Notify(); UpdateSubscriptionCommand?.Notify(); DeleteSubscriptionCommand?.Notify();
         StartRenameCommand?.Notify();
@@ -412,7 +414,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             ++attemptNumber;
             StatusDetail = LocalizationService.Pick($"Проверка сервера {attemptNumber} из {candidates.Length}", $"Checking server {attemptNumber} of {candidates.Length}");
-            if (autoSwitch && attemptNumber > 1)
+            if (autoSwitch && attemptNumber > 1 && candidate.Protocol != "xray-json")
             {
                 candidate.IsPinging = true;
                 try { candidate.LatencyMs = await _health.PingAsync(candidate, cancellation); candidate.PingFailed = candidate.LatencyMs is null; }
@@ -423,7 +425,8 @@ public sealed partial class MainViewModel : ObservableObject
             try
             {
                 string? endpoint = null;
-                if (UseTun && !IPAddress.TryParse(candidate.Host, out _))
+                Dictionary<string,string>? jsonAddresses = candidate.Protocol == "xray-json" && UseTun ? await XrayJsonProfileService.ResolveEndpointsAsync(candidate,cancellation) : null;
+                if (UseTun && candidate.Protocol != "xray-json" && !IPAddress.TryParse(candidate.Host, out _))
                 {
                     using var dnsTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
                     dnsTimeout.CancelAfter(TimeSpan.FromSeconds(10));
@@ -434,9 +437,9 @@ public sealed partial class MainViewModel : ObservableObject
                     endpoint = (addresses.FirstOrDefault(address => address.AddressFamily == AddressFamily.InterNetwork) ?? addresses.FirstOrDefault())?.ToString()
                         ?? throw new InvalidOperationException(LocalizationService.Pick("Не удалось определить IP-адрес сервера.", "Could not resolve the server address."));
                 }
-                string config = await Task.Run(() => new XrayConfigBuilder().Build(candidate, _state.Settings, _core.ApiPort, _core.SocksPort, _core.HttpPort, endpoint), cancellation);
+                string config = await Task.Run(() => new XrayConfigBuilder().Build(candidate, _state.Settings, _core.ApiPort, _core.SocksPort, _core.HttpPort, endpoint, jsonAddresses), cancellation);
                 var startup = Stopwatch.StartNew();
-                await _core.StartAsync(config, Secrets(candidate).Append(DnsOverHttpsUrl), BypassRussia || BlockAds, cancellation);
+                await _core.StartAsync(config, Secrets(candidate).Append(DnsOverHttpsUrl), BypassRussia || BlockAds || candidate.Protocol == "xray-json" && XrayJsonProfileService.NeedsGeoData(candidate), cancellation);
                 EnqueueLog($"Xray ready: {startup.ElapsedMilliseconds} ms.");
                 if (autoSwitch && !await _health.CheckTunnelAsync(_core.HttpPort, cancellation))
                 {
@@ -528,7 +531,7 @@ public sealed partial class MainViewModel : ObservableObject
     }
     private static IEnumerable<string> Secrets(ServerProfile server) =>
         new[] { server.Credential, server.PublicKey, server.ShortId, server.Encryption, server.Extra, server.Path, server.SpiderX, server.ServiceName }
-            .Where(value => !string.IsNullOrEmpty(value) && value is not ("/" or "none" or "auto"));
+            .Where(value => !string.IsNullOrEmpty(value) && value is not ("/" or "none" or "auto")).Concat(server.Protocol == "xray-json" ? XrayJsonProfileService.Secrets(server) : []);
     private async Task DisconnectCoreAsync()
     {
         ++_sessionGeneration;

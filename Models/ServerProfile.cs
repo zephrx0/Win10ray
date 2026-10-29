@@ -12,6 +12,8 @@ public sealed class ServerProfile : ObservableObject
     private bool _isPinging;
     private bool _pingFailed;
     private string _groupName = "";
+    private string _xrayJson = "";
+    private int? _jsonNodeCount;
     [JsonIgnore] public string GroupName { get => _groupName; set => Set(ref _groupName, value); }
 
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -26,13 +28,14 @@ public sealed class ServerProfile : ObservableObject
     public string ProviderName { get; set; } = "";
     private int _endpointCount = 1;
     [JsonIgnore] public int EndpointCount { get => _endpointCount; set { if (Set(ref _endpointCount, value)) OnPropertyChanged(nameof(AddressLabel)); } }
-    [JsonIgnore] public string AddressLabel => EndpointCount > 1 ? LocalizationService.Pick($"Узлов: {EndpointCount}", $"Nodes: {EndpointCount}") : Address;
+    [JsonIgnore] public string AddressLabel => Protocol == "xray-json" ? LocalizationService.Pick($"JSON · узлов: {_jsonNodeCount ??= XrayJsonProfileService.NodeCount(this)}", $"JSON · nodes: {_jsonNodeCount ??= XrayJsonProfileService.NodeCount(this)}") : EndpointCount > 1 ? LocalizationService.Pick($"Узлов: {EndpointCount}", $"Nodes: {EndpointCount}") : Address;
     [JsonIgnore] public string DisplayName => CountryFlagService.DisplayName(Name);
     [JsonIgnore] public System.Windows.Media.ImageSource? FlagImage => CountryFlagService.Image(string.IsNullOrEmpty(FlagCode) ? CountryFlagService.CountryCode(Name) : FlagCode);
     [JsonIgnore] public bool HasFlag => FlagImage is not null;
     public string Host { get; set; } = "";
     public int Port { get; set; }
     public string Protocol { get; set; } = "vless";
+    public string XrayJson { get => _xrayJson; set { if (Set(ref _xrayJson,value)) { _jsonNodeCount=null; OnPropertyChanged(nameof(AddressLabel)); } } }
     public string Credential { get; set; } = "";
     public string Encryption { get; set; } = "none";
     public string Method { get; set; } = "";
@@ -84,5 +87,5 @@ public sealed class ServerProfile : ObservableObject
     public string Address => Host.Contains(':', StringComparison.Ordinal) ? $"[{Host}]:{Port}" : $"{Host}:{Port}";
 
     [JsonIgnore]
-    public string ProtocolLabel => Protocol == "shadowsocks" ? "SS" : Protocol.ToUpperInvariant();
+    public string ProtocolLabel => Protocol == "xray-json" ? "JSON" : Protocol == "shadowsocks" ? "SS" : Protocol.ToUpperInvariant();
 }

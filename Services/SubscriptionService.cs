@@ -57,6 +57,7 @@ public sealed class SubscriptionService : IDisposable
             for (int redirect = 0; redirect <= 5; redirect++)
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+                request.Headers.Accept.ParseAdd("application/json, text/plain;q=0.8, */*;q=0.5");
                 // Do not disclose a device identifier to a different redirect origin.
                 if (hwid is not null && SameOrigin(origin, uri))
                 {
