@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -50,6 +51,8 @@ internal static class UiSmokeTests
                     vm.ConnectionModeIndex = 0;
                     window = new MainWindow(vm) { WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000, Top = -20000, ShowActivated = false, ShowInTaskbar = false };
                     window.Show();
+                    int nativeStyle = GetWindowLong(new WindowInteropHelper(window).Handle, -16);
+                    if ((nativeStyle & 0x00C40000) != 0x00C40000) throw new InvalidOperationException("Custom chrome must retain the native caption and resize frame for DWM window transitions.");
                     using var tray = new TrayService(window, vm, () => { });
                     string artifacts = Path.Combine(Directory.GetCurrentDirectory(), "artifacts", "previews", System.Globalization.CultureInfo.CurrentUICulture.Name);
                     Directory.CreateDirectory(artifacts);
@@ -57,6 +60,26 @@ internal static class UiSmokeTests
                     if (!vm.SendHwid || !vm.AutoSwitchServers) throw new InvalidOperationException("HWID and failover should be enabled by default.");
                     await vm.RefreshVersionAsync();
                     if (vm.ClientVersion != HardwareIdService.ClientVersion || !System.Text.RegularExpressions.Regex.IsMatch(vm.CoreVersion, @"^\d+\.\d+")) throw new InvalidOperationException("Client or core version was not loaded.");
+                    // Reproduce long core errors and a notification across actual native maximize/restore.
+                    vm.SelectedPage = 3;
+                    string logLine = "21:48:22  [TUN] connection: " + new string('x', 600);
+                    typeof(MainViewModel).GetProperty(nameof(MainViewModel.Logs))!.SetValue(vm, string.Join("\n", Enumerable.Repeat(logLine, 30)));
+                    vm.Message = LocalizationService.Pick("Настройки применены", "Settings applied");
+                    var logBox = (TextBox)window.FindName("LogBox");
+                    if (logBox.TextWrapping != TextWrapping.Wrap || logBox.HorizontalScrollBarVisibility != ScrollBarVisibility.Disabled) throw new InvalidOperationException("Long log lines must wrap inside the viewport.");
+                    for (int cycle = 0; cycle < 2; cycle++)
+                    {
+                        window.WindowState = WindowState.Maximized;
+                        await Task.Delay(160); window.UpdateLayout();
+                        ValidateWindowContent(window);
+                        if (cycle == 0) SavePreview(window, Path.Combine(artifacts, "dark-maximized-logs.png"));
+                        window.WindowState = WindowState.Normal;
+                        await Task.Delay(100); window.UpdateLayout();
+                        ValidateWindowContent(window);
+                        checks += 2;
+                    }
+                    vm.Message = "";
+                    vm.ClearLogsCommand.Execute(null);
                     vm.SearchText = "Amsterdam";
                     if (vm.ServerView.Cast<ServerProfile>().Count() != 1 || vm.Servers.Count != 3 || CollectionViewSource.GetDefaultView(vm.Servers).Cast<ServerProfile>().Count() != 3) throw new InvalidOperationException("Server search leaked into the global server selection.");
                     vm.SearchText = ""; checks += 3;
@@ -201,6 +224,21 @@ internal static class UiSmokeTests
                     if (window.IsVisible || exits != 0) throw new InvalidOperationException("Close must hide the window without exiting.");
                     window.ShowFromTray();
                     if (!window.IsVisible) throw new InvalidOperationException("Tray restoration failed.");
+                    await Task.Delay(30);
+                    var windowContent = (FrameworkElement)window.Content;
+                    if (SystemParameters.ClientAreaAnimation && !DependencyPropertyHelper.GetValueSource(windowContent, UIElement.OpacityProperty).IsAnimated)
+                        throw new InvalidOperationException("Restoring from the tray must animate the content entrance.");
+                    window.Hide();
+                    if (DependencyPropertyHelper.GetValueSource(windowContent, UIElement.OpacityProperty).IsAnimated)
+                        throw new InvalidOperationException("Hiding during an entrance must cancel the active animation.");
+                    window.ShowFromTray();
+                    await Task.Delay(220);
+                    if (Math.Abs(windowContent.Opacity - 1) > 0.001 || DependencyPropertyHelper.GetValueSource(windowContent, UIElement.OpacityProperty).IsAnimated)
+                        throw new InvalidOperationException("The entrance animation must finish with fully visible, interactive content.");
+                    window.Hide();
+                    if (DependencyPropertyHelper.GetValueSource(windowContent, UIElement.OpacityProperty).IsAnimated)
+                        throw new InvalidOperationException("Hiding a window must cancel its entrance animation.");
+                    window.ShowFromTray();
                     vm.CloseToTray = false; window.Close();
                     if (exits != 1) throw new InvalidOperationException("Closing without close-to-tray must request exit.");
                     vm.CloseToTray = true; checks += 5;
@@ -293,6 +331,29 @@ internal static class UiSmokeTests
         }
         ValidateButtonAlignment(Window.GetWindow(host));
     }
+
+    private static void ValidateWindowContent(MainWindow window)
+    {
+        var host = (FrameworkElement)window.FindName("PageHost");
+        var message = (FrameworkElement)window.FindName("MessageBar");
+        Rect pageBounds = host.TransformToAncestor(window).TransformBounds(new Rect(host.RenderSize));
+        Rect messageBounds = message.TransformToAncestor(window).TransformBounds(new Rect(message.RenderSize));
+        if (pageBounds.Left < 0 || pageBounds.Top < 32 || pageBounds.Right > window.ActualWidth || messageBounds.Bottom > window.ActualHeight || pageBounds.Bottom > messageBounds.Top)
+            throw new InvalidOperationException("Maximize/restore clips the page or overlaps it with the notification.");
+        ValidateHorizontalBounds(host, 1, 3);
+        if (!host.ClipToBounds || host.RenderTransform.Value != Matrix.Identity)
+            throw new InvalidOperationException("Page content must stay clipped and stationary while the window changes state.");
+        var log = (TextBox)window.FindName("LogBox");
+        if (log.ExtentWidth > log.ViewportWidth + 1) throw new InvalidOperationException("Long log lines extend beyond the viewport.");
+        foreach (Button button in Descendants<Button>(window).Where(button => button.IsVisible && button.Style == window.FindResource("TitleButton")))
+        {
+            Rect bounds = button.TransformToAncestor(window).TransformBounds(new Rect(button.RenderSize));
+            if (bounds.Right > window.ActualWidth || bounds.Top < 0) throw new InvalidOperationException("Caption controls are clipped on maximize.");
+        }
+    }
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
+    private static extern int GetWindowLong(IntPtr hwnd, int index);
 
     private static void ValidateButtonAlignment(Window window)
     {

@@ -39,7 +39,7 @@ public sealed class ServerHealthService
         timeout.CancelAfter(TimeSpan.FromSeconds(3));
         try
         {
-            using var socket = new TcpClient();
+            using var socket = new TcpClient(AddressFamily.InterNetwork);
             var watch = Stopwatch.StartNew();
             await socket.ConnectAsync(server.Host, server.Port, timeout.Token).ConfigureAwait(false);
             return Math.Max(1, (int)watch.ElapsedMilliseconds);

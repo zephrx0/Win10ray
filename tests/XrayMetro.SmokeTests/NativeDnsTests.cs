@@ -67,10 +67,11 @@ internal static class NativeDnsTests
         int checks=0;
         try
         {
-            foreach(bool ipv4Only in new[]{false,true})
+            foreach(bool matchByPath in new[]{false,true})
             {
                 int dnsPort=FreePort(),socksPort=FreePort();
-                JsonNode config=JsonNode.Parse(TunConfigBuilder.Build(true,"https://127.0.0.1:"+dohPort+"/dns-query",blockAds:true,processRules:[new("CURL.EXE",ProcessRouteAction.Direct)],ipv4Only:ipv4Only))!;
+                string curlPath=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"curl.exe");
+                JsonNode config=JsonNode.Parse(TunConfigBuilder.Build(true,"https://127.0.0.1:"+dohPort+"/dns-query",blockAds:true,processRules:[new(matchByPath?curlPath:"CURL.EXE",ProcessRouteAction.Direct,matchByPath)]))!;
                 // Exercise actual DNS hijacking, TLS DoH, SOCKS egress and Windows process lookup
                 // without installing a driver or changing any system routes or resolver settings.
                 config["inbounds"]=new JsonArray(
@@ -92,7 +93,7 @@ internal static class NativeDnsTests
                         try{using TcpClient ready=new();await ready.ConnectAsync(IPAddress.Loopback,dnsPort,deadline.Token);break;}catch(SocketException){await Task.Delay(30,deadline.Token);}
                     }
                     byte[] aaaa=await QueryAsync(dnsPort,"www.google.com",28,deadline.Token);
-                    if((aaaa[3]&15)!=0||BinaryPrimitives.ReadUInt16BigEndian(aaaa.AsSpan(6))!=(ipv4Only?0:1))throw new Exception("AAAA query must be empty NOERROR only on IPv4-only networks");
+                    if((aaaa[3]&15)!=0||BinaryPrimitives.ReadUInt16BigEndian(aaaa.AsSpan(6))!=0)throw new Exception("AAAA queries must always return empty NOERROR");
                     byte[] a=await QueryAsync(dnsPort,"www.google.com",1,deadline.Token);
                     if((a[3]&15)!=0||BinaryPrimitives.ReadUInt16BigEndian(a.AsSpan(6))!=1||!a.AsSpan(a.Length-4).SequenceEqual(new byte[]{127,0,0,1}))throw new Exception("An empty AAAA response poisoned the following A lookup");
                     byte[] blocked=await QueryAsync(dnsPort,"doubleclick.net",1,deadline.Token);
@@ -105,7 +106,15 @@ internal static class NativeDnsTests
                     using Process selected=Process.Start(curl)??throw new Exception("DNS selected process did not start");
                     Task<string> output=selected.StandardOutput.ReadToEndAsync(),error=selected.StandardError.ReadToEndAsync();await selected.WaitForExitAsync(deadline.Token);
                     if(selected.ExitCode!=0||await output!="DIRECT"||Volatile.Read(ref proxyConnections)!=before)throw new Exception("Selected application's DNS or HTTP escaped to the VPN resolver: "+await error);
-                    checks+=4;
+                    // A literal/cached IPv6 destination must be rejected without opening a proxy connection.
+                    using TcpClient ipv6=new();await ipv6.ConnectAsync(IPAddress.Loopback,socksPort,deadline.Token);
+                    NetworkStream socket=ipv6.GetStream();await socket.WriteAsync(new byte[]{5,1,0},deadline.Token);
+                    byte[] reply=new byte[2];await socket.ReadExactlyAsync(reply,deadline.Token);
+                    byte[] command=new byte[22];command[0]=5;command[1]=1;command[3]=4;
+                    IPAddress.Parse("2a02:7aa0:4000::5c").GetAddressBytes().CopyTo(command,4);BinaryPrimitives.WriteUInt16BigEndian(command.AsSpan(20),443);
+                    await socket.WriteAsync(command,deadline.Token);await socket.ReadExactlyAsync(reply,deadline.Token);
+                    if(reply[0]!=5||reply[1]==0||Volatile.Read(ref proxyConnections)!=before)throw new Exception("IPv6 destination escaped the reject rule");
+                    checks+=5;
                 }
                 finally{if(!router.HasExited)router.Kill(true);await router.WaitForExitAsync();await stdout;await stderr;}
             }

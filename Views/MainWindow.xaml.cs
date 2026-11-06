@@ -39,6 +39,7 @@ public partial class MainWindow : Window
     {
         _viewModel = viewModel;
         InitializeComponent();
+        WindowMotion.Attach(this);
         AllowDrop = true;
         AddHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(JsonProfileDragOver), true);
         AddHandler(DragDrop.PreviewDropEvent, new DragEventHandler(JsonProfileDrop), true);
@@ -68,6 +69,19 @@ public partial class MainWindow : Window
 
     private IntPtr WindowMessage(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
+        if (message == 0x0024 && lParam != IntPtr.Zero)
+        {
+            var monitor = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+            if (GetMonitorInfo(MonitorFromWindow(hwnd, 2), ref monitor))
+            {
+                // Native pixel coordinates: keep custom chrome inside the current monitor's work area.
+                MinMaxInfo limits = Marshal.PtrToStructure<MinMaxInfo>(lParam);
+                limits.MaxPosition = new NativePoint { X = monitor.Work.Left - monitor.Monitor.Left, Y = monitor.Work.Top - monitor.Monitor.Top };
+                limits.MaxSize = new NativePoint { X = monitor.Work.Right - monitor.Work.Left, Y = monitor.Work.Bottom - monitor.Work.Top };
+                Marshal.StructureToPtr(limits, lParam, false);
+                handled = true;
+            }
+        }
         if (message == 0x007E) Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(FitToWorkArea));
         return IntPtr.Zero;
     }
@@ -88,7 +102,8 @@ public partial class MainWindow : Window
     private void UpdateResponsiveLayout()
     {
         bool compact = ActualWidth < 660;
-        SidebarColumn.Width = new GridLength(compact ? 64 : ActualWidth < 800 ? 200 : 240);
+        double sidebarWidth = compact ? 64 : ActualWidth < 800 ? 200 : 240;
+        if (SidebarColumn.Width.Value != sidebarWidth) SidebarColumn.Width = new GridLength(sidebarWidth);
         BrandText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         foreach (TextBlock text in FindVisualChildren<TextBlock>(Sidebar))
             if (Grid.GetColumn(text) == 1) text.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
@@ -97,7 +112,7 @@ public partial class MainWindow : Window
             button.Padding = new Thickness(compact ? 12 : 16, 0, compact ? 12 : 16, 0);
             button.ToolTip = System.Windows.Automation.AutomationProperties.GetName(button);
         }
-        PageHost.Margin = compact ? new Thickness(20, 20, 12, 20) : new Thickness(28, 24, 20, 24);
+        ContentShell.Margin = compact ? new Thickness(20, 20, 12, 20) : new Thickness(28, 24, 24, 24);
         UpdateConnectionLayout();
     }
 
@@ -125,12 +140,14 @@ public partial class MainWindow : Window
     }
 
     [StructLayout(LayoutKind.Sequential)] private struct NativeRect { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential)] private struct NativePoint { public int X, Y; }
+    [StructLayout(LayoutKind.Sequential)] private struct MinMaxInfo { public NativePoint Reserved, MaxSize, MaxPosition, MinTrackSize, MaxTrackSize; }
     [StructLayout(LayoutKind.Sequential)] private struct MonitorInfo { public int Size; public NativeRect Monitor, Work; public uint Flags; }
     [DllImport("user32.dll")] private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
     [DllImport("user32.dll", CharSet = CharSet.Auto)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
     private void MoveNavigationIndicator()
     {
-        double position = _viewModel.SelectedPage * 48;
+        double position = _viewModel.SelectedPage * 40;
         if (SidebarSelection.RenderTransform is not TranslateTransform movement) return;
         if (!SystemParameters.ClientAreaAnimation) { movement.Y = position; return; }
         movement.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(position, TimeSpan.FromMilliseconds(190)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
@@ -170,6 +187,7 @@ public partial class MainWindow : Window
     private void OnStateChanged(object? sender, EventArgs e)
     {
         if (MaximizeButton is not null) MaximizeButton.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+        if (WindowBorder is not null) WindowBorder.BorderThickness = new Thickness(WindowState == WindowState.Maximized ? 0 : 1);
         if (WindowState == WindowState.Minimized && _viewModel.MinimizeToTray) Hide();
     }
 

@@ -9,13 +9,13 @@ namespace XrayMetro.Services;
 
 public static class TunConfigBuilder
 {
-    public static string Build(bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null, string interfaceName = "Win10ray", bool blockAds = true, ProcessRouteRule[]? processRules = null, bool defaultRouteDirect = false, bool ipv4Only = false)
+    public static string Build(bool useDnsOverHttps = false, string? dnsOverHttpsUrl = null, string interfaceName = "Win10ray", bool blockAds = true, ProcessRouteRule[]? processRules = null, bool defaultRouteDirect = false)
     {
         if (!System.Text.RegularExpressions.Regex.IsMatch(interfaceName, "^Win10ray(?:-[a-f0-9]{12})?$"))
             throw new ArgumentException("Invalid TUN interface name.", nameof(interfaceName));
         JsonNode config = JsonNode.Parse(Template)!;
         config["inbounds"]![0]!["interface_name"] = interfaceName;
-        config["route"]!["default_domain_resolver"] = "remote-dns";
+        config["route"]!["default_domain_resolver"] = new JsonObject { ["server"] = "remote-dns", ["strategy"] = "ipv4_only" };
         if (blockAds)
         {
             JsonObject block = BlockList.SingBoxMatch(); block["action"] = "reject"; block["no_drop"] = true;
@@ -76,16 +76,12 @@ public static class TunConfigBuilder
                 servers.Add(new JsonObject { ["type"] = "udp", ["tag"] = "direct-bootstrap", ["server"] = "1.1.1.1" });
             }
             servers.Add(directDns);
-            config["outbounds"]![1]!["domain_resolver"] = new JsonObject { ["server"] = "direct-dns", ["strategy"] = ipv4Only ? "ipv4_only" : "prefer_ipv4" };
+            config["outbounds"]![1]!["domain_resolver"] = new JsonObject { ["server"] = "direct-dns", ["strategy"] = "ipv4_only" };
         }
-        if (ipv4Only)
-        {
-            config["inbounds"]![0]!["address"] = new JsonArray("172.29.0.1/30");
-            config["dns"]!["strategy"] = "ipv4_only";
-            // An empty successful AAAA answer preserves A lookups. NXDOMAIN would poison both.
-            // Apply this to the shared Windows DNS service as well as attributed app queries.
-            dnsRules.Insert(0,new JsonObject { ["query_type"] = new JsonArray("AAAA"), ["action"] = "predefined", ["rcode"] = "NOERROR" });
-        }
+        // Reject cached/literal IPv6 destinations before service and per-process bypasses.
+        routeRules.Insert(0, new JsonObject { ["ip_version"] = 6, ["action"] = "reject", ["no_drop"] = true });
+        // Empty AAAA answers preserve A lookups, unlike NXDOMAIN. This also covers shared Windows DNS.
+        dnsRules.Insert(0, new JsonObject { ["query_type"] = new JsonArray("AAAA"), ["action"] = "predefined", ["rcode"] = "NOERROR" });
         return config.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
     }
     private static string WindowsProcessPattern(string value, bool isPath)
@@ -103,11 +99,11 @@ public static class TunConfigBuilder
       "log": { "level": "info", "timestamp": false },
       "dns": {
         "servers": [{ "type": "udp", "tag": "remote-dns", "server": "1.1.1.1", "detour": "xray" }],
-        "final": "remote-dns", "strategy": "prefer_ipv4"
+        "final": "remote-dns", "strategy": "ipv4_only"
       },
       "inbounds": [{
         "type": "tun", "tag": "tun-in", "interface_name": "Win10ray",
-        "address": ["172.29.0.1/30", "fdfe:dcba:9876::1/126"],
+        "address": ["172.29.0.1/30"],
         "mtu": 1500, "auto_route": true, "strict_route": true, "dns_mode": "hijack"
       }],
       "outbounds": [

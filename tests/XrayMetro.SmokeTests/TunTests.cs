@@ -23,16 +23,13 @@ internal static class TunTests
             TunRequest restored = await TunProtocol.ReadAsync<TunRequest>(memory, CancellationToken.None);
             Check(restored.Command == "heartbeat" && restored.Token == "synthetic-session", "IPC frame round-trip");
         }
-        Check(JsonSerializer.Deserialize<TunResponse>("{\"Ok\":true}")!.ProtocolVersion == 0 && TunProtocol.CurrentVersion == 9, "legacy service detected for one-time upgrade");
+        Check(JsonSerializer.Deserialize<TunResponse>("{\"Ok\":true}")!.ProtocolVersion == 0 && TunProtocol.CurrentVersion == 10, "legacy service detected for one-time upgrade");
         Check(Path.GetDirectoryName(TunServicePaths.InstallDirectory) == Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "privileged service is independent of the application install folder");
         string legacyImage = Path.Combine(TunServicePaths.LegacyDirectory, "Win10ray.TunService.exe");
         Check(TunServicePaths.IsAllowedImage(legacyImage, true) && !TunServicePaths.IsAllowedImage(legacyImage, false), "legacy helper can only receive a public version probe, never session tokens");
         Check(!TunServicePaths.IsAllowedImage(Path.Combine(Path.GetTempPath(), "Win10ray.TunService.exe"), true), "user-writable helpers cannot impersonate the service");
         Check(TunProtocol.AdapterStartSeconds > 15 && TunProtocol.ServiceRequestSeconds > TunProtocol.AdapterStartSeconds && TunProtocol.ClientRequestSeconds > TunProtocol.ServiceRequestSeconds, "IPC cannot terminate valid Wintun startup before its PnP deadline");
-        foreach (string address in new[] { "::", "::1", "fe80::1", "ff02::1", "::ffff:192.0.2.1" })
-            Check(!TunNetworkCapabilities.IsUsableIpv6(System.Net.IPAddress.Parse(address)),"Link-local/loopback IPv6 is not internet connectivity");
-        Check(TunNetworkCapabilities.IsUsableIpv6(System.Net.IPAddress.Parse("2606:4700:4700::1111")),"A routable IPv6 address remains eligible");
-        using (JsonDocument ipv4=JsonDocument.Parse(TunConfigBuilder.Build(ipv4Only:true)))
+        using (JsonDocument ipv4=JsonDocument.Parse(TunConfigBuilder.Build()))
             Check(ipv4.RootElement.GetProperty("inbounds")[0].GetProperty("address").GetArrayLength()==1 && ipv4.RootElement.GetProperty("dns").GetProperty("rules")[0].GetProperty("rcode").GetString()=="NOERROR","IPv4-only TUN cannot advertise an unreachable virtual IPv6 network or poison A records");
         using (JsonDocument fresh = JsonDocument.Parse(TunConfigBuilder.Build(interfaceName: "Win10ray-aabbccddeeff")))
             Check(fresh.RootElement.GetProperty("inbounds")[0].GetProperty("interface_name").GetString() == "Win10ray-aabbccddeeff", "TUN session accepts a fresh PnP identity");
@@ -70,15 +67,16 @@ internal static class TunTests
         {
             JsonElement root = doc.RootElement;
             Check(root.GetProperty("inbounds")[0].GetProperty("type").GetString() == "tun", "real TUN inbound");
-            Check(root.GetProperty("inbounds")[0].GetProperty("address").GetArrayLength() == 2, "IPv4 and IPv6 interface addresses");
+            Check(root.GetProperty("inbounds")[0].GetProperty("address").GetArrayLength() == 1, "only an IPv4 interface address");
+            Check(root.GetProperty("dns").GetProperty("strategy").GetString() == "ipv4_only" && root.GetProperty("route").GetProperty("rules")[0].GetProperty("ip_version").GetInt32() == 6, "IPv6 is disabled even without process exceptions");
             Check(root.GetProperty("inbounds")[0].GetProperty("auto_route").GetBoolean(), "automatic routing");
             Check(root.GetProperty("inbounds")[0].GetProperty("strict_route").GetBoolean(), "strict Windows DNS routing");
             Check(root.GetProperty("outbounds")[0].GetProperty("server").GetString() == "127.0.0.1" && root.GetProperty("outbounds")[0].GetProperty("server_port").GetInt32() == 10808, "TUN forwards to Xray SOCKS");
             Check(root.GetProperty("route").GetProperty("auto_detect_interface").GetBoolean(), "physical interface selection prevents egress loops");
-            Check(root.GetProperty("route").GetProperty("rules")[0].GetProperty("process_name").EnumerateArray().Any(item => item.GetString() == "xray.exe"), "Xray egress excluded from recapture");
+            Check(root.GetProperty("route").GetProperty("rules")[1].GetProperty("process_name").EnumerateArray().Any(item => item.GetString() == "xray.exe"), "Xray egress excluded from recapture");
             Check(root.GetProperty("route").GetProperty("final").GetString() == "xray", "default traffic sent to Xray");
         }
-        foreach (string endpoint in new[] { DnsEndpoint.Default, "https://dns.google:8443/custom-query", "https://[2606:4700:4700::1111]/dns-query" })
+        foreach (string endpoint in new[] { DnsEndpoint.Default, "https://dns.google:8443/custom-query" })
         {
             Check(DnsEndpoint.IsValid(endpoint), "valid HTTPS DNS endpoint accepted");
             using JsonDocument doc = JsonDocument.Parse(TunConfigBuilder.Build(true, endpoint));
@@ -87,7 +85,7 @@ internal static class TunTests
             Check(server.GetProperty("server_port").GetInt32() == new Uri(endpoint).Port && server.GetProperty("path").GetString() == new Uri(endpoint).PathAndQuery, "custom DoH path and port preserved");
             if (new Uri(endpoint).HostNameType == UriHostNameType.Dns) Check(server.GetProperty("domain_resolver").GetString() == "bootstrap", "hostname DoH resolver has bootstrap");
         }
-        foreach (string endpoint in new[] { "http://dns.example/dns-query", "file:///secret", "https://user:password@example.com/dns-query", "https://example.com/dns-query#fragment", "not a URL" })
+        foreach (string endpoint in new[] { "https://[2606:4700:4700::1111]/dns-query", "http://dns.example/dns-query", "file:///secret", "https://user:password@example.com/dns-query", "https://example.com/dns-query#fragment", "not a URL" })
         {
             Check(!DnsEndpoint.IsValid(endpoint), "invalid DoH endpoint rejected");
             try { TunConfigBuilder.Build(true, endpoint); throw new InvalidOperationException("FAIL: invalid DoH settings accepted"); }
@@ -101,7 +99,7 @@ internal static class TunTests
             foreach (string component in TunComponentIntegrity.Hashes.Keys) await File.WriteAllTextAsync(Path.Combine(directory, component), "corrupted test component");
             try { await TunComponentIntegrity.VerifyAsync(directory); throw new InvalidOperationException("FAIL: corrupted TUN component accepted"); }
             catch (InvalidDataException) { passed++; }
-            foreach (string configuration in new[] { TunConfigBuilder.Build(), TunConfigBuilder.Build(true, DnsEndpoint.Default), TunConfigBuilder.Build(true, "https://dns.google/dns-query"), TunConfigBuilder.Build(true,DnsEndpoint.Default,processRules:[new("chrome.exe",XrayMetro.Models.ProcessRouteAction.Direct)],ipv4Only:true) })
+            foreach (string configuration in new[] { TunConfigBuilder.Build(), TunConfigBuilder.Build(true, DnsEndpoint.Default), TunConfigBuilder.Build(true, "https://dns.google/dns-query"), TunConfigBuilder.Build(true,DnsEndpoint.Default,processRules:[new("chrome.exe",XrayMetro.Models.ProcessRouteAction.Direct)]) })
             {
                 string config = Path.Combine(directory, "tun.json"); await File.WriteAllTextAsync(config, configuration);
                 using var process = new Process { StartInfo = new ProcessStartInfo(Path.GetFullPath(executable)) { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, RedirectStandardOutput = true, RedirectStandardError = true } };

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using XrayMetro.Models;
@@ -17,6 +18,9 @@ public sealed class XrayConfigBuilder
     public string Build(ServerProfile server, AppSettings settings, int apiPort = DefaultApiPort, int socksPort = SocksPort, int httpPort = HttpPort, string? resolvedServerAddress = null, IReadOnlyDictionary<string,string>? jsonAddresses = null)
     {
         LinkParser.Validate(server);
+        foreach (string host in server.Protocol == "xray-json" ? XrayJsonProfileService.Endpoints(XrayJsonProfileService.Read(server.XrayJson)).Select(endpoint => endpoint.Host) : new[] { resolvedServerAddress ?? server.Host })
+            if (IPAddress.TryParse(host.Trim('[', ']'), out IPAddress? address) && address.AddressFamily != AddressFamily.InterNetwork)
+                throw new InvalidOperationException(LocalizationService.Pick("Сервер использует IPv6. Выберите сервер с IPv4-адресом.", "The server uses IPv6. Select a server with an IPv4 address."));
         if (resolvedServerAddress is not null && !IPAddress.TryParse(resolvedServerAddress, out _)) throw new ArgumentException("Resolved endpoint must be an IP address.", nameof(resolvedServerAddress));
         if (apiPort is < 1 or > 65535 || socksPort is < 1 or > 65535 || httpPort is < 1 or > 65535 ||
             apiPort == socksPort || apiPort == httpPort || socksPort == httpPort) throw new ArgumentOutOfRangeException(nameof(apiPort));
@@ -41,7 +45,7 @@ public sealed class XrayConfigBuilder
             {
                 ["system"] = new JsonObject { ["statsInboundUplink"] = true, ["statsInboundDownlink"] = true }
             },
-            ["dns"] = new JsonObject { ["servers"] = Strings(settings.UseDnsOverHttps ? DnsEndpoint.Parse(settings.DnsOverHttpsUrl).AbsoluteUri : "1.1.1.1"), ["queryStrategy"] = "UseIP" },
+            ["dns"] = new JsonObject { ["servers"] = Strings(settings.UseDnsOverHttps ? DnsEndpoint.Parse(settings.DnsOverHttpsUrl).AbsoluteUri : "1.1.1.1"), ["queryStrategy"] = "UseIPv4" },
             ["inbounds"] = new JsonArray
             {
                 Inbound("socks-in", "socks", socksPort, new JsonObject { ["auth"] = "noauth", ["udp"] = true, ["ip"] = "127.0.0.1" }),
@@ -62,7 +66,32 @@ public sealed class XrayConfigBuilder
             ((JsonArray)config["inbounds"]!).Add(Inbound("process-override", "socks", 10810, new JsonObject { ["auth"] = "noauth", ["udp"] = true, ["ip"] = "127.0.0.1" }));
         }
         if (server.Protocol == "xray-json") XrayJsonProfileService.Apply(config,server,settings,jsonAddresses);
+        ApplyIpv4Only(config);
         return config.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private static void ApplyIpv4Only(JsonObject config)
+    {
+        JsonObject dns = (JsonObject)config["dns"]!;
+        dns["queryStrategy"] = "UseIPv4";
+        foreach (JsonObject resolver in (dns["servers"] as JsonArray ?? new JsonArray()).OfType<JsonObject>())
+            resolver["queryStrategy"] = "UseIPv4";
+        JsonArray outbounds = (JsonArray)config["outbounds"]!;
+        // Run after importing provider JSON so it cannot re-enable IPv6 or override this guard.
+        string block = outbounds.OfType<JsonObject>().Last(outbound => outbound["protocol"]!.GetValue<string>() == "blackhole")["tag"]!.GetValue<string>();
+        ((JsonArray)config["routing"]!["rules"]!).Insert(0, new JsonObject { ["type"] = "field", ["ip"] = Strings("::/0"), ["outboundTag"] = block });
+        foreach (JsonObject outbound in outbounds.OfType<JsonObject>())
+        {
+            string protocol = outbound["protocol"]!.GetValue<string>();
+            if (protocol is "blackhole" or "dns" or "loopback") continue;
+            JsonObject stream = outbound["streamSettings"] as JsonObject ?? new JsonObject();
+            outbound["streamSettings"] = stream;
+            JsonObject socket = stream["sockopt"] as JsonObject ?? new JsonObject();
+            stream["sockopt"] = socket;
+            socket["domainStrategy"] = "ForceIPv4";
+            if (protocol == "freedom") (outbound["settings"] as JsonObject)?.Remove("domainStrategy");
+            else outbound["targetStrategy"] = "ForceIPv4";
+        }
     }
 
     private static JsonObject Inbound(string tag, string protocol, int port, JsonObject settings) => new()

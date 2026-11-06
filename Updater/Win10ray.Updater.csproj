@@ -14,12 +14,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LangVersion>12</LangVersion>
     <AssemblyName>updater</AssemblyName>
-    <Version>1.4.6</Version>
+    <Version>1.4.7</Version>
     <Product>Win10ray Updater</Product>
     <ApplicationIcon>../Assets/Win10ray.ico</ApplicationIcon>
     <ApplicationManifest>../app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Views/WindowMotion.cs" Link="WindowMotion.cs" />
     <Compile Include="../Services/UpdateService.cs" Link="UpdateService.cs" />
     <Compile Include="../Services/UpdatePackage.cs" Link="UpdatePackage.cs" />
     <Compile Include="../Services/ExeInstallerService.cs" Link="ExeInstallerService.cs" />

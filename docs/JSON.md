@@ -6,6 +6,8 @@
 
 Клиент назначает собственные локальные порты, API статистики и настройки журнала. Его блокировщик и обход российских сайтов применяются перед правилами профиля. DNS профиля сохраняется; включение DoH в клиенте заменяет список DNS-серверов. Исключения приложений в TUN продолжают работать.
 
+Соединения и DNS используют только IPv4. Настройки IPv6 в JSON заменяются политикой клиента; для серверов нужны IPv4-адреса или домены с A-записями.
+
 Поддерживаются исходящие VLESS, VMess, Trojan, Shadowsocks, SOCKS, HTTP, Freedom, Blackhole, DNS и Loopback. Внешние файлы сертификатов/ключей и геоданных, Lua, вебхуки и Browser Dialer не поддерживаются. Используйте встроенные PEM-данные и стандартные `geoip.dat`/`geosite.dat`.
 
 JSON-профили требуют Win10ray 1.4.4 или новее и хранятся с Windows DPAPI. «Сохранить JSON» создаёт незашифрованный файл с ключами доступа. Большой профиль может не поместиться в QR-код.
@@ -21,6 +23,8 @@ Import a subscription, paste JSON using Import, choose JSON file or drop a `.jso
 Each object remains one list entry named by `remarks`. Its outbounds, routing, balancers, random/roundRobin/leastPing/leastLoad strategies and observatories are retained. leastPing/leastLoad require an observatory in the profile.
 
 Win10ray owns local listeners, statistics API and logging. Application ad blocking and Russian bypass rules take priority. Profile DNS is retained unless client DoH is enabled. TUN application exclusions remain available.
+
+Connections and DNS use IPv4 only. The client overrides IPv6 settings in JSON; servers require IPv4 addresses or domains with A records.
 
 Supported outbounds: VLESS, VMess, Trojan, Shadowsocks, SOCKS, HTTP, Freedom, Blackhole, DNS and Loopback. External certificate/key/geodata files, Lua, webhooks and Browser Dialer are unsupported. Use inline PEM and bundled geodata.
 

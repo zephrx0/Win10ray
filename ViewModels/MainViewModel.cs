@@ -433,11 +433,11 @@ public sealed partial class MainViewModel : ObservableObject
                     using var dnsTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
                     dnsTimeout.CancelAfter(TimeSpan.FromSeconds(10));
                     IPAddress[] addresses;
-                    try { addresses = await Dns.GetHostAddressesAsync(candidate.Host, dnsTimeout.Token); }
+                    try { addresses = await Dns.GetHostAddressesAsync(candidate.Host, AddressFamily.InterNetwork, dnsTimeout.Token); }
                     catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
                     { throw new InvalidOperationException(LocalizationService.Pick("Не удалось определить IP-адрес сервера.", "Could not resolve the server address.")); }
-                    endpoint = (addresses.FirstOrDefault(address => address.AddressFamily == AddressFamily.InterNetwork) ?? addresses.FirstOrDefault())?.ToString()
-                        ?? throw new InvalidOperationException(LocalizationService.Pick("Не удалось определить IP-адрес сервера.", "Could not resolve the server address."));
+                    endpoint = addresses.FirstOrDefault(address => address.AddressFamily == AddressFamily.InterNetwork)?.ToString()
+                        ?? throw new InvalidOperationException(LocalizationService.Pick("У сервера нет IPv4-адреса. IPv6 отключён.", "The server has no IPv4 address. IPv6 is disabled."));
                 }
                 string config = await Task.Run(() => new XrayConfigBuilder().Build(candidate, _state.Settings, _core.ApiPort, _core.SocksPort, _core.HttpPort, endpoint, jsonAddresses), cancellation);
                 var startup = Stopwatch.StartNew();

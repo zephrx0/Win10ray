@@ -18,6 +18,7 @@ public sealed class QrWindow : Window
     private QrWindow(string link, byte[] png)
     {
         _link = link; _png = png;
+        WindowMotion.Attach(this);
         Title = LocalizationService.Get("ShowQr"); Width = 430; Height = 500; MinWidth = 340; MinHeight = 420;
         WindowStartupLocation = WindowStartupLocation.CenterOwner; FontFamily = new FontFamily("Segoe UI");
         SetResourceReference(BackgroundProperty, "WindowBackgroundBrush"); SetResourceReference(ForegroundProperty, "ForegroundBrush");

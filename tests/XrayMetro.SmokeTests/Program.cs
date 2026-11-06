@@ -77,7 +77,14 @@ Check(imported.Profiles.Count == 1 && imported.Errors.Count == 1, "partial impor
 ImportResult encodedList = parser.ParseMany(Base64(list));
 Check(encodedList.Profiles.Count == 1 && encodedList.Errors.Count == 1, "Base64 subscription list");
 
-List<ServerProfile> profiles = [vless, reality, vmess, vmessUri, trojan, shadowsocks, legacySs, plainSs];
+List<ServerProfile> profiles = [vless, vmess, vmessUri, trojan, shadowsocks, plainSs];
+foreach (ServerProfile ipv6 in new[] { reality, legacySs })
+{
+    bool rejected = false;
+    try { builder.Build(ipv6, new AppSettings()); }
+    catch (InvalidOperationException) { rejected = true; }
+    Check(rejected, "IPv6-only server cannot start a connection");
+}
 profiles.Add(parser.Parse($"vless://{TestId}@example.com:443?security=tls&type=xhttp&mode=stream-up&path=%2Ftest&extra=%7B%22noSSEHeader%22%3Atrue%7D"));
 profiles.Add(parser.Parse($"vless://{TestId}@example.com:443?security=tls&type=httpupgrade&path=%2Fupgrade"));
 using (JsonDocument pinned = JsonDocument.Parse(builder.Build(vless, new AppSettings { UseTun = true }, resolvedServerAddress: "192.0.2.10")))
@@ -103,15 +110,20 @@ foreach (ServerProfile profile in profiles)
     Check(root.GetProperty("api").GetProperty("listen").GetString() == "127.0.0.1:10085", "loopback-only stats API");
     Check(root.GetProperty("policy").GetProperty("system").GetProperty("statsInboundDownlink").GetBoolean(), "inbound counters enabled");
     Check(root.GetProperty("log").GetProperty("access").GetString() == "none", "access logs disabled");
+    Check(root.GetProperty("dns").GetProperty("queryStrategy").GetString() == "UseIPv4", "Xray DNS never requests IPv6");
+    Check(root.GetProperty("routing").GetProperty("rules")[0].GetProperty("ip")[0].GetString() == "::/0", "literal IPv6 is blocked before application rules");
+    Check(root.GetProperty("outbounds")[0].GetProperty("targetStrategy").GetString() == "ForceIPv4" &&
+        root.GetProperty("outbounds")[0].GetProperty("streamSettings").GetProperty("sockopt").GetProperty("domainStrategy").GetString() == "ForceIPv4" &&
+        root.GetProperty("outbounds")[1].GetProperty("streamSettings").GetProperty("sockopt").GetProperty("domainStrategy").GetString() == "ForceIPv4", "proxy targets, server connections and direct bypasses all require IPv4");
 }
 using (JsonDocument configuration = JsonDocument.Parse(builder.Build(vless, new AppSettings { BypassRussia = true, BlockAds = false })))
 {
     JsonElement routing = configuration.RootElement.GetProperty("routing");
     Check(routing.GetProperty("domainStrategy").GetString() == "IPOnDemand", "IP lookup occurs before catch-all");
     JsonElement rules = routing.GetProperty("rules");
-    Check(rules[0].GetProperty("domain")[0].GetString() == "geosite:category-ru" && rules[0].GetProperty("outboundTag").GetString() == "direct", "Russian domains route directly");
-    Check(rules[1].GetProperty("ip")[0].GetString() == "geoip:ru" && rules[1].GetProperty("outboundTag").GetString() == "direct", "Russian IPs route directly");
-    Check(rules[2].GetProperty("outboundTag").GetString() == "proxy", "other traffic routes through proxy");
+    Check(rules[1].GetProperty("domain")[0].GetString() == "geosite:category-ru" && rules[1].GetProperty("outboundTag").GetString() == "direct", "Russian domains route directly");
+    Check(rules[2].GetProperty("ip")[0].GetString() == "geoip:ru" && rules[2].GetProperty("outboundTag").GetString() == "direct", "Russian IPs route directly");
+    Check(rules[3].GetProperty("outboundTag").GetString() == "proxy", "other traffic routes through proxy");
 }
 using (JsonDocument configuration = JsonDocument.Parse(builder.Build(vless, new AppSettings { UseDnsOverHttps = true, DnsOverHttpsUrl = DnsEndpoint.Default })))
     Check(configuration.RootElement.GetProperty("dns").GetProperty("servers")[0].GetString() == DnsEndpoint.Default, "Xray DNS-over-HTTPS configured");

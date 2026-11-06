@@ -247,7 +247,7 @@ public static class XrayJsonProfileService
         if(provider["dns"] is JsonObject dns)
         {
             JsonObject effective=(JsonObject)dns.DeepClone();
-            if(settings.UseDnsOverHttps){effective["servers"]=config["dns"]!["servers"]!.DeepClone();effective["queryStrategy"]="UseIP";}
+            if(settings.UseDnsOverHttps){effective["servers"]=config["dns"]!["servers"]!.DeepClone();effective["queryStrategy"]="UseIPv4";}
             config["dns"]=effective;
         }
         string InternalTag(string name){while(!tags.Add(name))name+="_";return name;}
@@ -267,11 +267,11 @@ public static class XrayJsonProfileService
             {
                 await limit.WaitAsync(overall.Token).ConfigureAwait(false);entered=true;
                 JsonNode? mapped=bundle["dns"]?["hosts"]?[host] ?? bundle["dns"]?["hosts"]?["domain:"+host];
-                string fixedIp=mapped is JsonArray list ? list.Select(Text).FirstOrDefault(value=>IPAddress.TryParse(value,out _))??"" : Text(mapped);
-                if(IPAddress.TryParse(fixedIp,out _)){lock(resolved)resolved[host]=fixedIp;return;}
+                string fixedIp=mapped is JsonArray list ? list.Select(Text).FirstOrDefault(value=>IPAddress.TryParse(value,out IPAddress? ip)&&ip.AddressFamily==AddressFamily.InterNetwork)??"" : Text(mapped);
+                if(IPAddress.TryParse(fixedIp,out IPAddress? fixedAddress)&&fixedAddress.AddressFamily==AddressFamily.InterNetwork){lock(resolved)resolved[host]=fixedIp;return;}
                 using var deadline=CancellationTokenSource.CreateLinkedTokenSource(overall.Token);deadline.CancelAfter(TimeSpan.FromSeconds(3));
-                IPAddress[] addresses=await Dns.GetHostAddressesAsync(host,deadline.Token).ConfigureAwait(false);
-                IPAddress? address=addresses.FirstOrDefault(item=>item.AddressFamily==AddressFamily.InterNetwork)??addresses.FirstOrDefault();
+                IPAddress[] addresses=await Dns.GetHostAddressesAsync(host,AddressFamily.InterNetwork,deadline.Token).ConfigureAwait(false);
+                IPAddress? address=addresses.FirstOrDefault(item=>item.AddressFamily==AddressFamily.InterNetwork);
                 if(address is not null){lock(resolved)resolved[host]=address.ToString();}
             }
             catch(Exception exception)when(exception is SocketException || exception is OperationCanceledException && !token.IsCancellationRequested){ }

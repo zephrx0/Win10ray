@@ -14,6 +14,7 @@ public sealed class ProcessPickerWindow : Window
     private string? _selection;
     private ProcessPickerWindow(string[] processes)
     {
+        WindowMotion.Attach(this);
         Title = LocalizationService.Get("RunningProcesses"); Width = 430; Height = 520; MinWidth = 320; MinHeight = 320;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         SetResourceReference(BackgroundProperty, "WindowBackgroundBrush"); SetResourceReference(ForegroundProperty, "ForegroundBrush");

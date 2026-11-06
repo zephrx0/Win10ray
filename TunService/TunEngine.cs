@@ -129,9 +129,8 @@ internal sealed class TunEngine : IDisposable
         string config = Path.Combine(Installer.DataDirectory, "tun.json");
         // Wintun derives its GUID from the name. Avoid a device still being removed by PnP.
         string interfaceName = "Win10ray-" + Guid.NewGuid().ToString("N")[..12];
-        bool ipv4Only = request.ProcessRules?.Any(rule => rule.Action == XrayMetro.Models.ProcessRouteAction.Direct) == true && TunNetworkCapabilities.RequiresIpv4Only();
-        lock (_logs) _logs.Enqueue(ipv4Only ? "TUN DNS: IPv4 (no IPv6 gateway)." : "TUN DNS: IPv4/IPv6.");
-        await File.WriteAllTextAsync(config, TunConfigBuilder.Build(request.UseDnsOverHttps, request.DnsOverHttpsUrl, interfaceName, request.BlockAds, request.ProcessRules, request.DefaultRouteDirect, ipv4Only), cancellationToken);
+        lock (_logs) _logs.Enqueue("TUN DNS: IPv4 only. IPv6 disabled.");
+        await File.WriteAllTextAsync(config, TunConfigBuilder.Build(request.UseDnsOverHttps, request.DnsOverHttpsUrl, interfaceName, request.BlockAds, request.ProcessRules, request.DefaultRouteDirect), cancellationToken);
         var start = new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory, "sing-box.exe"))
         {
             WorkingDirectory = AppContext.BaseDirectory, UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden,

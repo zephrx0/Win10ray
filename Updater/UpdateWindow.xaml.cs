@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 using XrayMetro.Services;
+using XrayMetro.Views;
 
 namespace Win10ray.Updater;
 
@@ -22,6 +23,7 @@ public partial class UpdateWindow : Window
     {
         _mode = mode; _argument = argument;
         InitializeComponent();
+        WindowMotion.Attach(this);
         CheckButton.Content = Text("Проверить", "Check"); InstallButton.Content = Text("Обновить", "Update");
         ChannelSelector.ItemsSource = new[] { Text("Стабильный", "Stable"), Text("Экспериментальный", "Experimental") }; ChannelSelector.SelectedIndex = 0;
         Loaded += async (_, _) =>

@@ -14,6 +14,7 @@
 - [JSON-подписки Xray](docs/JSON.md): автоматический выбор формата; серверы и балансировщики провайдера сохраняются одной записью.
 - OpenVPN и импорт `.ovpn` доступны в экспериментальной версии.
 - Системный прокси и TUN, обход VPN для выбранных приложений, блокировка рекламы и трекеров, DNS over HTTPS.
+- Соединения и DNS работают через IPv4; IPv6 отключён, включая JSON-профили.
 - Трей, автоподключение, переключение недоступных серверов, тёмная и светлая темы, русский и английский интерфейс.
 
 ## Скачать
@@ -50,6 +51,7 @@ A native Xray client with a Windows 10 style interface. Built with C# and WPF.
 - [Xray JSON subscriptions](docs/JSON.md) select the format automatically and retain provider servers and balancers in one entry.
 - OpenVPN and `.ovpn` import are available in the experimental build.
 - System proxy and TUN, VPN bypass for selected apps, ad and tracker blocking, DNS over HTTPS.
+- Connections and DNS use IPv4; IPv6 is disabled, including JSON profiles.
 - Tray, automatic connection and server failover, light/dark themes, English/Russian interface.
 
 ### Download

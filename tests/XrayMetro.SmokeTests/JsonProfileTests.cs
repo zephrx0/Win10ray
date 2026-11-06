@@ -31,6 +31,16 @@ internal static class JsonProfileTests
         Check(generated["inbounds"]!.AsArray().All(node=>node!["listen"]!.GetValue<string>()=="127.0.0.1")&&generated["api"]!["listen"]!.GetValue<string>()=="127.0.0.1:10085","Provider cannot expose local listeners or replace statistics API");
         Check(generated["log"]!["access"]!.GetValue<string>()=="none"&&generated["outbounds"]!.AsArray().Count==4,"Safe runtime log and preserved provider outbounds");
         Check(generated["routing"]!["rules"]![0]!["outboundTag"]!.GetValue<string>()!= "block"&&generated["routing"]!["balancers"]![0]!["strategy"]!["type"]!.GetValue<string>()=="roundRobin","Application policy and provider balancing both survive");
+        JsonObject dualStack=(JsonObject)source.DeepClone();
+        dualStack["dns"]=new JsonObject{["queryStrategy"]="UseIPv6",["servers"]=new JsonArray(new JsonObject{["address"]="1.1.1.1",["queryStrategy"]="UseIPv6"})};
+        dualStack["outbounds"]![0]!["streamSettings"]=new JsonObject{["sockopt"]=new JsonObject{["domainStrategy"]="ForceIPv6"}};
+        ServerProfile dualProfile=new LinkParser().ParseMany(dualStack.ToJsonString()).Profiles.Single();
+        JsonObject ipv4=JsonNode.Parse(new XrayConfigBuilder().Build(dualProfile,new AppSettings{BlockAds=false}))!.AsObject();
+        Check(ipv4["dns"]!["queryStrategy"]!.GetValue<string>()=="UseIPv4"&&ipv4["dns"]!["servers"]![0]!["queryStrategy"]!.GetValue<string>()=="UseIPv4"&&ipv4["outbounds"]![0]!["streamSettings"]!["sockopt"]!["domainStrategy"]!.GetValue<string>()=="ForceIPv4","Provider JSON cannot re-enable IPv6 DNS or socket connections");
+        Check(ipv4["routing"]!["rules"]![0]!["ip"]![0]!.GetValue<string>()=="::/0","Provider routing cannot bypass the IPv6 guard");
+        dualStack["dns"]=new JsonObject{["hosts"]=new JsonObject{["example.test"]="127.0.0.1"}};
+        ServerProfile hostsOnly=new LinkParser().ParseMany(dualStack.ToJsonString()).Profiles.Single();
+        Check(JsonNode.Parse(new XrayConfigBuilder().Build(hostsOnly,new AppSettings()))!["dns"]!["queryStrategy"]!.GetValue<string>()=="UseIPv4","A hosts-only provider DNS config remains supported");
         var wildcard=(JsonObject)source.DeepClone();wildcard["routing"]!["balancers"]![0]!["selector"]=new JsonArray("");
         ServerProfile pool=new LinkParser().ParseMany(wildcard.ToJsonString()).Profiles.Single();
         JsonObject poolConfig=JsonNode.Parse(new XrayConfigBuilder().Build(pool,new AppSettings{BlockAds=false}))!.AsObject();

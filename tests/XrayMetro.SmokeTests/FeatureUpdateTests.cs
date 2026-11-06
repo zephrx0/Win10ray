@@ -66,13 +66,13 @@ internal static class FeatureUpdateTests
                 AppSettings settings = new() { UseTun = true, BlockAds = block, BypassRussia = bypass };
                 using JsonDocument xray = JsonDocument.Parse(new XrayConfigBuilder().Build(profile, settings));
                 var rules = xray.RootElement.GetProperty("routing").GetProperty("rules").EnumerateArray().ToArray();
-                Check((rules[0].GetProperty("outboundTag").GetString() == "block") == block, "Xray block toggle and priority precede Russian bypass");
+                Check((rules[1].GetProperty("outboundTag").GetString() == "block") == block, "Xray block toggle and priority precede Russian bypass");
                 using JsonDocument tun = JsonDocument.Parse(TunConfigBuilder.Build(blockAds: block));
                 var tunRules = tun.RootElement.GetProperty("route").GetProperty("rules").EnumerateArray().ToArray();
                 JsonElement[] blocking = tunRules.Where(r => r.GetProperty("action").GetString() == "reject").ToArray();
                 foreach (string domain in new[] { "doubleclick.net", "sentry.io", "example.com" })
                     Check(blocking.Any(rule => Matches(rule, domain)) == (block && domain != "example.com"), "TUN block matching: " + domain);
-                if (block) Check(tun.RootElement.GetProperty("dns").GetProperty("rules")[0].GetProperty("rcode").GetString() == "NXDOMAIN", "blocked DNS gets immediate negative reply");
+                if (block) Check(tun.RootElement.GetProperty("dns").GetProperty("rules")[1].GetProperty("rcode").GetString() == "NXDOMAIN", "blocked DNS gets immediate negative reply");
             }
             ProcessRouteRule[] processes = [new("browser.exe",ProcessRouteAction.Proxy),new(@"C:\Apps\local.exe",ProcessRouteAction.Direct,true),new("blocked.exe",ProcessRouteAction.Block)];
             foreach (bool direct in new[] { false, true })
@@ -81,7 +81,7 @@ internal static class FeatureUpdateTests
                 string configuration = TunConfigBuilder.Build(useDnsOverHttps:direct, dnsOverHttpsUrl:"https://dns.google/dns-query",blockAds:ads,processRules:processes,defaultRouteDirect:direct);
                 using JsonDocument tun = JsonDocument.Parse(configuration);
                 JsonElement route = tun.RootElement.GetProperty("route");
-                Check(route.GetProperty("rules")[3].GetProperty("outbound").GetString() == "xray-override" && System.Text.RegularExpressions.Regex.IsMatch(processes[1].Value.ToUpperInvariant(), route.GetProperty("rules")[4].GetProperty("process_path_regex")[0].GetString()!) && route.GetProperty("rules")[5].GetProperty("action").GetString() == "reject", "case-insensitive Windows process routing precedes blocking and default route");
+                Check(route.GetProperty("rules")[4].GetProperty("outbound").GetString() == "xray-override" && System.Text.RegularExpressions.Regex.IsMatch(processes[1].Value.ToUpperInvariant(), route.GetProperty("rules")[5].GetProperty("process_path_regex")[0].GetString()!) && route.GetProperty("rules")[6].GetProperty("action").GetString() == "reject", "case-insensitive Windows process routing precedes blocking and default route");
                 Check(route.GetProperty("final").GetString() == "xray", "unlisted applications always use Xray, including legacy all-direct settings");
                 if(direct) Check(tun.RootElement.GetProperty("dns").GetProperty("servers").EnumerateArray().Single(server=>server.GetProperty("tag").GetString()=="direct-dns").GetProperty("type").GetString()=="https","direct routing preserves DNS over HTTPS");
                 int index = Array.IndexOf(args, "--sing-box");
@@ -90,7 +90,7 @@ internal static class FeatureUpdateTests
             AppSettings overrides = new() { UseTun=true,BlockAds=true,BypassRussia=true,ProcessRules=processes.ToList() };
             string overrideConfig = new XrayConfigBuilder().Build(profile,overrides);
             using(JsonDocument xray=JsonDocument.Parse(overrideConfig))
-                Check(xray.RootElement.GetProperty("routing").GetProperty("rules")[0].GetProperty("inboundTag")[0].GetString()=="process-override" && xray.RootElement.GetProperty("inbounds")[2].GetProperty("port").GetInt32()==10810,"explicit process proxy bypasses both ad block and Russian direct rules");
+                Check(xray.RootElement.GetProperty("routing").GetProperty("rules")[1].GetProperty("inboundTag")[0].GetString()=="process-override" && xray.RootElement.GetProperty("inbounds")[2].GetProperty("port").GetInt32()==10810,"explicit process proxy bypasses both ad block and Russian direct rules");
             int coreIndex = Array.IndexOf(args,"--xray");
             if(coreIndex>=0){await ValidateCoreAsync(args[coreIndex+1],overrideConfig,directory,true);passed++;}
 
