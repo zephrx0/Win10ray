@@ -25,15 +25,15 @@ function Copy-Component([string]$SourceDirectory, [string]$Name, [string]$Destin
 }
 
 $xray = Get-VerifiedArchive `
-    'https://github.com/XTLS/Xray-core/releases/download/v26.10.21/Xray-windows-64.zip' `
-    'Xray-26.10.21-windows-64.zip' `
-    'FC58C39EE2F2717B4C54D28D374362389E5319B20AE44AEA76EA45A5243EC827'
+    'https://github.com/XTLS/Xray-core/releases/download/v26.11.9/Xray-windows-64.zip' `
+    'Xray-26.11.9-windows-64.zip' `
+    '1262522266337B824F07BEB8E1375786B437683B3890105469088F8E17E0A69D'
 $singBox = Get-VerifiedArchive `
     'https://github.com/SagerNet/sing-box/releases/download/v1.14.4/sing-box-1.14.4-windows-amd64.zip' `
     'sing-box-1.14.4-windows-amd64.zip' `
     '99185D75D314A07DBBA4A130C8AD986CBEB629A07927975636B341CA61F991DF'
 
-$xraySource = Join-Path $cache 'xray-26.10.21'
+$xraySource = Join-Path $cache 'xray-26.11.9'
 $tunSource = Join-Path $cache 'sing-box-1.14.4'
 Expand-Archive -LiteralPath $xray -DestinationPath $xraySource -Force
 Expand-Archive -LiteralPath $singBox -DestinationPath $tunSource -Force

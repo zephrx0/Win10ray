@@ -1,6 +1,6 @@
 {
   "source": "v2fly/domain-list-community",
-  "geositeSha256": "ef725a08ba804effd5b5b6e747c8c28eabc54ed068d786d7366d067d2e1a3849",
+  "geositeSha256": "daaae9760ab5e687845817967257a6e9883d42ac9c09f4b774a32bd5cb39b4d7",
   "tags": [
     "category-ads-all",
     "category-ads-and-telemetry"
@@ -348,6 +348,10 @@
     },
     {
       "type": 2,
+      "value": "adobestats.io"
+    },
+    {
+      "type": 2,
       "value": "adping.qq.com"
     },
     {
@@ -356,7 +360,19 @@
     },
     {
       "type": 2,
+      "value": "ads-api-o.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "ads-api-t.my7v.com"
+    },
+    {
+      "type": 2,
       "value": "ads-api.duolingo.com"
+    },
+    {
+      "type": 2,
+      "value": "ads-o.res.leiniao.com"
     },
     {
       "type": 2,
@@ -672,6 +688,10 @@
     },
     {
       "type": 2,
+      "value": "akstat.io"
+    },
+    {
+      "type": 2,
       "value": "alimama.alicdn.com"
     },
     {
@@ -800,6 +820,18 @@
     },
     {
       "type": 2,
+      "value": "applicationinsights.io"
+    },
+    {
+      "type": 2,
+      "value": "applicationinsights.net"
+    },
+    {
+      "type": 2,
+      "value": "applogcdn.com"
+    },
+    {
+      "type": 2,
       "value": "applovin.com"
     },
     {
@@ -833,6 +865,10 @@
     {
       "type": 2,
       "value": "ar.umeng.com"
+    },
+    {
+      "type": 2,
+      "value": "aria.ms"
     },
     {
       "type": 2,
@@ -889,6 +925,10 @@
     {
       "type": 2,
       "value": "baifen.music.baidu.com"
+    },
+    {
+      "type": 2,
+      "value": "base.api.my7v.com"
     },
     {
       "type": 2,
@@ -1068,6 +1108,14 @@
     },
     {
       "type": 2,
+      "value": "cloudflareinsights-cn.com"
+    },
+    {
+      "type": 2,
+      "value": "cloudflareinsights.com"
+    },
+    {
+      "type": 2,
       "value": "cloudpush.iqiyi.com"
     },
     {
@@ -1180,6 +1228,10 @@
     },
     {
       "type": 2,
+      "value": "data.microsoft.com"
+    },
+    {
+      "type": 2,
       "value": "data.mistat.india.xiaomi.com"
     },
     {
@@ -1197,6 +1249,30 @@
     {
       "type": 2,
       "value": "datayi.cn"
+    },
+    {
+      "type": 2,
+      "value": "dc-conf-o.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "dc-conf-t.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "dc-o.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "dc-t.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "dc-uo.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "dc-ut.api.leiniao.com"
     },
     {
       "type": 2,
@@ -1397,6 +1473,10 @@
     {
       "type": 2,
       "value": "gdt.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "gdtimg.com"
     },
     {
       "type": 2,
@@ -1684,6 +1764,10 @@
     },
     {
       "type": 2,
+      "value": "in.applicationinsights.azure.com"
+    },
+    {
+      "type": 2,
       "value": "inner-active.mobi"
     },
     {
@@ -1717,6 +1801,10 @@
     {
       "type": 2,
       "value": "isdspeed.qq.com"
+    },
+    {
+      "type": 2,
+      "value": "isms-o.api.my7v.com"
     },
     {
       "type": 2,
@@ -1912,6 +2000,10 @@
     },
     {
       "type": 2,
+      "value": "meitustat.com"
+    },
+    {
+      "type": 2,
       "value": "metrics.duolingo.com"
     },
     {
@@ -1969,6 +2061,10 @@
     {
       "type": 2,
       "value": "mlog.hiido.com"
+    },
+    {
+      "type": 2,
+      "value": "mmstat.com"
     },
     {
       "type": 2,
@@ -2224,6 +2320,10 @@
     },
     {
       "type": 2,
+      "value": "paypalbeacon.com"
+    },
+    {
+      "type": 2,
       "value": "pb.i.sogou.com"
     },
     {
@@ -2325,6 +2425,14 @@
     {
       "type": 2,
       "value": "qhupdate.com"
+    },
+    {
+      "type": 2,
+      "value": "qms-report-o.api.leiniao.com"
+    },
+    {
+      "type": 2,
+      "value": "qms-report-t.api.leiniao.com"
     },
     {
       "type": 2,
@@ -2524,6 +2632,10 @@
     },
     {
       "type": 2,
+      "value": "shuqistat.com"
+    },
+    {
+      "type": 2,
       "value": "shuzilm.cn"
     },
     {
@@ -2673,6 +2785,10 @@
     {
       "type": 2,
       "value": "telecome.cn"
+    },
+    {
+      "type": 2,
+      "value": "telemetry.microsoft.com"
     },
     {
       "type": 2,
@@ -2861,6 +2977,10 @@
     {
       "type": 2,
       "value": "vk-analytics.ru"
+    },
+    {
+      "type": 2,
+      "value": "volceapplog.com"
     },
     {
       "type": 2,
@@ -3324,11 +3444,35 @@
     },
     {
       "type": 3,
+      "value": "crashlyticsreports-pa.googleapis.com"
+    },
+    {
+      "type": 3,
+      "value": "dc.applicationinsights.azure.com"
+    },
+    {
+      "type": 3,
+      "value": "dc.services.visualstudio.com"
+    },
+    {
+      "type": 3,
       "value": "disney.my.sentry.io"
     },
     {
       "type": 3,
       "value": "error-tracking.megamarket.tech"
+    },
+    {
+      "type": 3,
+      "value": "firebase-settings.crashlytics.com"
+    },
+    {
+      "type": 3,
+      "value": "firebaselogging-pa.googleapis.com"
+    },
+    {
+      "type": 3,
+      "value": "firebaselogging.googleapis.com"
     },
     {
       "type": 3,
@@ -3345,6 +3489,10 @@
     {
       "type": 3,
       "value": "informer.yandex.ru"
+    },
+    {
+      "type": 3,
+      "value": "live.applicationinsights.azure.com"
     },
     {
       "type": 3,
@@ -3480,6 +3628,10 @@
     },
     {
       "type": 3,
+      "value": "rt.services.visualstudio.com"
+    },
+    {
+      "type": 3,
       "value": "rtlog3-applog-hl.fqnovel.com"
     },
     {
@@ -3529,6 +3681,10 @@
     {
       "type": 3,
       "value": "sentry.popmechanic.ru"
+    },
+    {
+      "type": 3,
+      "value": "sentry.ppy.sh"
     },
     {
       "type": 3,
@@ -3597,6 +3753,10 @@
     {
       "type": 3,
       "value": "tracing-http.megamarket.tech"
+    },
+    {
+      "type": 3,
+      "value": "update.crashlytics.com"
     },
     {
       "type": 3,

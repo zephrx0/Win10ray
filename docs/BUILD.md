@@ -10,7 +10,7 @@ dotnet build
 dotnet run --project Win10ray.csproj
 ```
 
-Рядом с `Win10ray.exe` нужны каталоги `xray` (`xray.exe`, `geoip.dat`, `geosite.dat`), `tun` (`sing-box.exe`, `wintun.dll`, `libcronet.dll`) и `service`, а также `updater.exe`. Подготовка ядер скачивает официальные архивы Xray 26.10.21 и sing-box 1.14.4, проверяет SHA-256. Бинарные файлы исключены из Git.
+Рядом с `Win10ray.exe` нужны каталоги `xray` (`xray.exe`, `geoip.dat`, `geosite.dat`), `tun` (`sing-box.exe`, `wintun.dll`, `libcronet.dll`) и `service`, а также `updater.exe`. Подготовка ядер скачивает официальные архивы Xray 26.11.9 и sing-box 1.14.4, проверяет SHA-256. Бинарные файлы исключены из Git.
 
 ## Установщик
 

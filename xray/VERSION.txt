@@ -1,5 +1,5 @@
-Xray-core v26.10.21, Windows x64
-Source: https://github.com/XTLS/Xray-core/releases/tag/v26.10.21
+Xray-core v26.11.9, Windows x64
+Source: https://github.com/XTLS/Xray-core/releases/tag/v26.11.9
 Archive: Xray-windows-64.zip
-SHA256: fc58c39ee2f2717b4c54d28d374362389e5319b20ae44aea76ea45a5243ec827
+SHA256: 1262522266337b824f07beb8e1375786b437683b3890105469088f8e17e0a69d
 Archive checksum verified against the release .dgst file before extraction.
